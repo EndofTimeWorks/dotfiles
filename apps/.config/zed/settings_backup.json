@@ -1,0 +1,74 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "icon_theme": "JetBrains New UI Icons (Dark)",
+  "edit_predictions": {
+    "mode": "subtle",
+    "copilot": {
+      "enable_next_edit_suggestions": true
+    },
+    "provider": "copilot",
+    "disabled_globs": [],
+  },
+  "agent": {
+    "favorite_models": [
+      {
+        "provider": "copilot_chat",
+        "model": "claude-opus-4.6"
+      },
+      {
+        "provider": "copilot_chat",
+        "model": "gpt-5-mini"
+      },
+      {
+        "provider": "copilot_chat",
+        "model": "gpt-5.2"
+      },
+      {
+        "provider": "copilot_chat",
+        "model": "gpt-5.3-codex"
+      }
+    ],
+    "always_allow_tool_actions": true,
+    "default_profile": "ask",
+    "default_model": {
+      "provider": "copilot_chat",
+      "model": "gpt-5-mini",
+    },
+    "model_parameters": [],
+  },
+  "autosave": "on_focus_change",
+  "base_keymap": "VSCode",
+  "ui_font_size": 16,
+  "buffer_font_size": 16,
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "Kleur Dark",
+  },
+  "calls": {
+    "mute_on_join": true
+
+  },
+    "languages": {
+      "Ruby": {
+        "formatter": {
+          "external": {
+            "command": "rubocop",
+            "arguments": ["--fix", "--stdin", "ignored", "--stderr"]
+          }
+        },
+        "format_on_save": "on"
+      }
+    }
+  }
+
+  "format_on_save": "on",
+  "formatter": "prettier",
+}

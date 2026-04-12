@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+STATE="$HOME/.config/wallpaper"
+if [[ -f "$STATE" ]]; then
+  TARGET="$(cat "$STATE")"
+  if [[ "$TARGET" == \#* ]]; then
+    swaybg -c "$TARGET" &
+  else
+    swaybg -i "$TARGET" -m fill &
+  fi
+else
+  swaybg -c "#16161e" &
+fi
+disown

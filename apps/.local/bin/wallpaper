@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Usage: wallpaper ~/Pictures/wall.jpg
+#        wallpaper "#16161e"   (solid color)
+set -e
+
+TARGET="${1:-}"
+
+if [[ -z "$TARGET" ]]; then
+  echo "Usage: wallpaper <path-to-image|#rrggbb>"
+  exit 1
+fi
+
+STATE="$HOME/.config/wallpaper"
+
+# Save for next login
+echo "$TARGET" > "$STATE"
+
+# Kill existing swaybg
+pkill -x swaybg 2>/dev/null || true
+sleep 0.1
+
+# Apply
+if [[ "$TARGET" == \#* ]]; then
+  swaybg -c "$TARGET" &
+else
+  swaybg -i "$TARGET" -m fill &
+fi
+
+disown

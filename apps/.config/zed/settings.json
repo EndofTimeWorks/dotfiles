@@ -1,0 +1,105 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "project_panel": {
+    "dock": "left"
+  },
+  "outline_panel": {
+    "dock": "left"
+  },
+  "collaboration_panel": {
+    "dock": "left"
+  },
+  "git_panel": {
+    "dock": "left"
+  },
+  "agent": {
+    "dock": "right",
+    "favorite_models": [
+      {
+        "provider": "copilot_chat",
+        "model": "claude-sonnet-4.6",
+        "enable_thinking": false
+      },
+      {
+        "provider": "copilot_chat",
+        "model": "gpt-5-mini",
+        "enable_thinking": false
+      },
+      {
+        "provider": "copilot_chat",
+        "model": "claude-opus-4.6",
+        "enable_thinking": false
+      },
+      {
+        "provider": "copilot_chat",
+        "model": "claude-opus-4.5",
+        "enable_thinking": false
+      },
+      {
+        "provider": "copilot_chat",
+        "model": "claude-sonnet-4.5",
+        "enable_thinking": false
+      }
+    ],
+    "tool_permissions": {
+      "tools": {
+        "fetch": {
+          "always_allow": [
+            {
+              "pattern": "^https?://www\\.better\\-auth\\.com"
+            }
+          ]
+        },
+        "terminal": {
+          "always_allow": [
+            {
+              "pattern": "^git\\s+show(\\s|$)"
+            },
+            {
+              "pattern": "^which\\s+psql(\\s|$)"
+            },
+            {
+              "pattern": "^ls\\b"
+            },
+            {
+              "pattern": "^which\\s+pg_ctl(\\s|$)"
+            },
+            {
+              "pattern": "^cat\\b"
+            },
+            {
+              "pattern": "^diff\\b"
+            }
+          ]
+        }
+      }
+    },
+    "default_profile": "write",
+    "default_model": {
+      "effort": "high",
+      "enable_thinking": false,
+      "provider": "copilot_chat",
+      "model": "gpt-5-mini"
+    },
+    "model_parameters": []
+  },
+  "autosave": "on_focus_change",
+  "base_keymap": "VSCode",
+  "ui_font_size": 16,
+  "buffer_font_size": 16,
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "Kleur Dark"
+  },
+  "auto_install_extensions": {
+    "wakatime": true
+  }
+}

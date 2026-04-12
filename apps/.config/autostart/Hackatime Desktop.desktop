@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Hackatime Desktop
+Comment=Hackatime Desktopstartup script
+Exec=/home/end/Github/hackatime-desktop/src-tauri/target/release/desktop --minimized
+StartupNotify=false
+Terminal=false

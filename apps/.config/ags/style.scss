@@ -1,0 +1,530 @@
+// palette
+$bg: #0b0d1a;
+$surface: #0f1120;
+$surface2: #141628;
+$overlay: #1a1d35;
+$purple: #c792ea;
+$purple-dim: #9a70c7;
+$cyan: #4ec9b0;
+$green: #99c794;
+$pink: #ec5f89;
+$yellow: #fac863;
+$red: #f97b58;
+$text: #cdd6f4;
+$subtext: #7f849c;
+$border: rgba(78, 201, 176, 0.15);
+
+* {
+  font-family: "Maple Mono NF", monospace;
+  font-size: 13px;
+  color: $text;
+  -gtk-icon-style: regular;
+}
+
+// bar
+window.bar {
+  background: transparent;
+}
+
+.bar-centerbox {
+  background: $surface;
+  border-radius: 12px;
+  margin: 6px 8px 0;
+  border: 1px solid $border;
+  padding: 2px 6px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+
+// modules
+.module {
+  background: $surface2;
+  border-radius: 8px;
+  padding: 1px 8px;
+  margin: 2px 2px;
+  border: 1px solid $border;
+  label {
+    color: $text;
+  }
+}
+
+.module-icon {
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+.workspaces {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0 4px;
+
+  .ws-dot {
+    font-size: 8px;
+    margin: 0 2px;
+    color: $subtext;
+    transition: all 200ms ease;
+    &.active {
+      color: $purple;
+      font-size: 11px;
+    }
+    &.focused {
+      color: $cyan;
+    }
+  }
+}
+
+.window-title {
+  background: transparent;
+  border: none;
+  padding: 0 6px;
+  color: $subtext;
+  font-size: 12px;
+}
+
+.clock-module {
+  .time {
+    color: $text;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .date {
+    color: $subtext;
+    font-size: 11px;
+    margin-left: 6px;
+  }
+}
+
+.media-module {
+  min-width: 120px;
+  .media-icon {
+    color: $cyan;
+  }
+  .media-title {
+    color: $text;
+    font-size: 12px;
+  }
+  .media-btn {
+    background: transparent;
+    border: none;
+    padding: 0 3px;
+    color: $subtext;
+    border-radius: 6px;
+    &:hover {
+      color: $purple;
+      background: $overlay;
+    }
+  }
+}
+
+.volume-module {
+  .vol-icon {
+    color: $cyan;
+  }
+  .vol-muted {
+    color: $pink;
+  }
+}
+
+.brightness-module {
+  .bright-icon {
+    color: $yellow;
+  }
+}
+
+.mullvad-module {
+  &.on {
+    box-shadow: inset 0 0 0 1px $green;
+    border-radius: 9px;
+  }
+  &.off {
+    box-shadow: inset 0 0 0 1px $red;
+    border-radius: 9px;
+  }
+}
+
+.tailscale-module {
+  &.on {
+    box-shadow: inset 0 0 0 1px $green;
+    border-radius: 9px;
+  }
+  &.off {
+    box-shadow: inset 0 0 0 1px $red;
+    border-radius: 9px;
+  }
+}
+
+.vpn-status-label {
+  font-size: 12px;
+  font-weight: bold;
+}
+.vpn-detail {
+  color: $subtext;
+  font-size: 11px;
+}
+
+.network-module {
+  .net-icon {
+    color: $green;
+  }
+  .net-disconnected {
+    color: $pink;
+  }
+  .net-strength {
+    color: $subtext;
+    font-size: 11px;
+  }
+  .net-wired {
+    color: $cyan;
+  }
+}
+
+.battery-module {
+  .bat-icon {
+    color: $green;
+  }
+  .bat-charging {
+    color: $yellow;
+  }
+  .bat-low {
+    color: $pink;
+  }
+  .bat-label {
+    font-size: 12px;
+  }
+}
+
+.sysstat-module {
+  .stat-icon {
+    color: $purple;
+  }
+  .stat-label {
+    font-size: 12px;
+  }
+}
+
+.weather-module {
+  .weather-text {
+    font-size: 12px;
+  }
+  .unit-toggle {
+    background: $overlay;
+    border: 1px solid $border;
+    border-radius: 6px;
+    padding: 0 4px;
+    margin: 0;
+    min-height: 0;
+    min-width: 0;
+    font-size: 11px;
+    color: $subtext;
+    &:hover {
+      color: $cyan;
+      border-color: $cyan;
+    }
+  }
+}
+
+.notif-bell {
+  .bell-icon {
+    color: $subtext;
+  }
+  .bell-count {
+    color: $pink;
+    font-size: 10px;
+    font-weight: bold;
+  }
+  &.has-notifs .bell-icon {
+    color: $purple;
+  }
+}
+
+// tray
+.tray-module {
+  background: $surface2;
+  border-radius: 8px;
+  padding: 1px 4px;
+  margin: 2px 2px;
+  border: 1px solid $border;
+
+  .tray-item {
+    background: transparent;
+    border: none;
+    padding: 1px 2px;
+    border-radius: 6px;
+    min-height: 0;
+    min-width: 0;
+    &:hover {
+      background: $overlay;
+    }
+    > button {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      box-shadow: none;
+      min-height: 0;
+      min-width: 0;
+      &:hover,
+      &:active,
+      &:checked {
+        background: transparent;
+        box-shadow: none;
+      }
+    }
+    > button > image {
+      opacity: 0;
+      min-width: 0;
+      min-height: 0;
+    }
+  }
+}
+
+// volume popover
+.open-mixer-btn {
+  background: $overlay;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 4px 10px;
+  color: $subtext;
+  margin-top: 4px;
+  &:hover {
+    color: $cyan;
+    border-color: $cyan;
+  }
+}
+
+.vol-pct {
+  color: $subtext;
+  font-size: 11px;
+}
+.mic-icon {
+  color: $green;
+}
+
+// notifications
+window.notification-popup {
+  background: transparent;
+}
+
+.notif-popup-inner {
+  padding: 8px;
+}
+
+.notif-toast {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  min-width: 320px;
+
+  .notif-app {
+    color: $purple;
+    font-size: 11px;
+    font-weight: bold;
+  }
+  .notif-close {
+    background: transparent;
+    border: none;
+    padding: 0 4px;
+    color: $subtext;
+    border-radius: 6px;
+    font-size: 11px;
+    &:hover {
+      color: $pink;
+      background: $overlay;
+    }
+  }
+  .notif-summary {
+    color: $text;
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .notif-body {
+    color: $subtext;
+    font-size: 12px;
+  }
+}
+
+window.notification-center {
+  background: rgba(22, 22, 30, 0.85);
+  border-left: 1px solid $border;
+}
+
+.notif-center-inner {
+  padding: 16px 12px;
+  min-width: 340px;
+}
+
+.notif-center-header {
+  margin-bottom: 4px;
+  .notif-center-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: $text;
+  }
+  .notif-clear-all {
+    background: $overlay;
+    border: 1px solid $border;
+    border-radius: 8px;
+    padding: 2px 10px;
+    color: $subtext;
+    font-size: 11px;
+    &:hover {
+      color: $pink;
+      border-color: $pink;
+    }
+  }
+}
+
+.notif-card {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 10px 12px;
+
+  .notif-app {
+    color: $purple;
+    font-size: 11px;
+    font-weight: bold;
+  }
+  .notif-close {
+    background: transparent;
+    border: none;
+    padding: 0 4px;
+    color: $subtext;
+    border-radius: 6px;
+    font-size: 11px;
+    &:hover {
+      color: $pink;
+      background: $overlay;
+    }
+  }
+  .notif-summary {
+    color: $text;
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .notif-body {
+    color: $subtext;
+    font-size: 12px;
+  }
+}
+
+.notif-empty {
+  color: $subtext;
+  font-size: 12px;
+}
+
+// clock popover
+.clock-tz-label {
+  color: $subtext;
+  font-size: 12px;
+}
+.clock-section-title {
+  color: $subtext;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.tz-btn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 8px;
+  color: $text;
+  font-size: 12px;
+  &:hover {
+    background: $overlay;
+    color: $purple;
+  }
+}
+
+calendar {
+  background: $surface2;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 4px;
+  color: $text;
+
+  &:selected {
+    background: $purple;
+    color: $bg;
+    border-radius: 6px;
+  }
+  &.highlight {
+    color: $cyan;
+    font-weight: bold;
+  }
+  header {
+    color: $text;
+    font-weight: bold;
+  }
+  button {
+    background: transparent;
+    border: none;
+    color: $subtext;
+    border-radius: 4px;
+  }
+  button:hover {
+    background: $overlay;
+    color: $text;
+  }
+  button.day {
+    color: $text;
+  }
+  button.day:selected {
+    background: $purple;
+    color: $bg;
+  }
+  button.day.today {
+    color: $purple;
+    font-weight: bold;
+  }
+  button.day.other-month {
+    color: $subtext;
+    opacity: 0.5;
+  }
+}
+
+.clock-center-inner {
+  padding: 14px 12px;
+  min-width: 260px;
+}
+
+// popovers — reset GTK4's internal `contents` node padding
+popover > contents {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+popover {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  scale {
+    min-width: 160px;
+    trough {
+      background: $overlay;
+      border-radius: 8px;
+      min-height: 6px;
+    }
+    highlight {
+      background: $purple;
+      border-radius: 8px;
+    }
+    slider {
+      background: $text;
+      border-radius: 50%;
+      min-width: 14px;
+      min-height: 14px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+  }
+}

@@ -1,0 +1,44 @@
+# Browser/Electron caches
+*/Cache/
+*/Code Cache/
+*/GPUCache/
+*/DawnGraphiteCache/
+*/DawnWebGPUCache/
+*/Crashpad/
+*/IndexedDB/
+*/Local Storage/
+*/Session Storage/
+*/Shared Dictionary/
+*/WebStorage/
+*/.org.chromium.Chromium.*
+
+# Logs and runtime state
+*.log
+*/Cookies
+*/Cookies-journal
+*/DIPS
+*/DIPS-wal
+*/SharedStorage
+*/SharedStorage-wal
+*/TransportSecurity
+*/Trust Tokens
+*/Trust Tokens-journal
+*/Network Persistent State
+
+# Secrets
+github-copilot/apps.json
+
+# JetBrains runtime
+JetBrains/*/event-log-metadata/
+JetBrains/*/workspace/
+JetBrains/*/tasks/
+JetBrains/*/settingsSync/
+JetBrains/*/*.db
+JetBrains/*/options/recentProjects.xml
+JetBrains/*/options/trusted-paths.xml
+JetBrains/*/options/usage.statistics.xml
+JetBrains/*/options/features.usage.statistics.xml
+JetBrains/*/options/window.state.xml
+# AGS runtime / build artifacts
+ags/node_modules/
+ags/@girs/

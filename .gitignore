@@ -1,0 +1,7 @@
+apps/.config/JetBrains/**/settingsSync
+apps/.config/JetBrains/**/fus/
+apps/.config/JetBrains/**/*.db
+apps/.config/JetBrains/**/*.db-shm
+apps/.config/JetBrains/**/*.db-wal
+apps/.config/obsidian/
+apps/.config/kwalletrc
