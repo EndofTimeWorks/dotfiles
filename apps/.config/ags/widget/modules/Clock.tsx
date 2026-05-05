@@ -8,6 +8,19 @@ export default function Clock() {
   const [time, setTime] = createState("")
   const [date, setDate] = createState("")
 
+  function toggleClockCenter() {
+    const win = app.get_window("clock-center")
+    if (!win) return
+
+    if (win.visible) {
+      win.visible = false
+      return
+    }
+
+    win.visible = true
+    win.present()
+  }
+
   function pollTime() { execAsync(["date", "+%H:%M:%S"]).then(s => setTime(s.trim())).catch(() => {}) }
   function pollDate() { execAsync(["date", "+%a %b %d"]).then(s => setDate(s.trim())).catch(() => {}) }
 
@@ -17,7 +30,7 @@ export default function Clock() {
 
   return (
     <button class="module clock-module" halign={Gtk.Align.CENTER} valign={Gtk.Align.CENTER}
-      hexpand={false} onClicked={() => app.toggle_window("clock-center")}>
+      hexpand={false} onClicked={toggleClockCenter}>
       <box spacing={6}>
         <label class="time" label={time} />
         <label class="date" label={date} />

@@ -43,7 +43,7 @@ export default function Tailscale() {
       onClicked={() => execAsync(
         status().up
           ? "tailscale down"
-          : `bash -c "tailscale up && sudo ip route add 100.64.0.0/10 dev tailscale0 table main && sudo nft insert rule inet mullvad output ip daddr 100.64.0.0/10 accept && sudo nft insert rule inet mullvad output oif tailscale0 accept"`
+          : `bash -lc "tailscale up && /home/end/.local/bin/mullvad-tailscale-fix || true"`
       ).then(poll)}>
     </button>
   ) as unknown as Gtk.Button

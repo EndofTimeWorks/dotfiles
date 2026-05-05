@@ -10,8 +10,12 @@ app.start({
   main() {
     const monitors = app.get_monitors()
     monitors.map(Bar)
-    monitors.map(NotificationCenter)
-    monitors.map(NotificationPopup)
-    monitors.map(ClockCenter)
+
+    const popupMonitor = monitors[0]
+    if (!popupMonitor) return
+
+    NotificationCenter(popupMonitor)
+    NotificationPopup(popupMonitor)
+    ClockCenter(popupMonitor)
   },
 })

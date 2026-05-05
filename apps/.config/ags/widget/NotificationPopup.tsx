@@ -4,11 +4,17 @@ import Notifd from "gi://AstalNotifd"
 import Pango from "gi://Pango"
 import { createBinding, For } from "ags"
 import { timeout } from "ags/time"
-import { addNotif } from "./notifStore"
+import { addNotif, activateNotif } from "./notifStore"
 
 type N = ReturnType<typeof Notifd.get_default>["notifications"][0]
 
 function Toast({ notif }: { notif: N }) {
+  const left = new Gtk.GestureClick()
+  left.button = 1
+  left.connect("pressed", () => {
+    activateNotif(notif)
+  })
+
   const gesture = new Gtk.GestureClick()
   gesture.button = 3
   gesture.connect("pressed", () => { try { notif.dismiss() } catch {} })
@@ -32,6 +38,7 @@ function Toast({ notif }: { notif: N }) {
     </box>
   ) as unknown as Gtk.Box
 
+  box.add_controller(left)
   box.add_controller(gesture)
   return box
 }

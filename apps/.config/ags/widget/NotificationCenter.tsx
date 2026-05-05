@@ -1,7 +1,7 @@
 import { Astal, Gtk, Gdk } from "ags/gtk4"
 import app from "ags/gtk4/app"
 import { For } from "ags"
-import { history, removeNotif, clearAll, type NotifEntry } from "./notifStore"
+import { history, removeNotif, clearAll, activateNotif, type NotifEntry } from "./notifStore"
 
 function NotifCard({ entry }: { entry: NotifEntry }) {
   const rightClick = new Gtk.GestureClick()
@@ -16,7 +16,7 @@ function NotifCard({ entry }: { entry: NotifEntry }) {
   leftClick.button = 1
   leftClick.propagation_phase = Gtk.PropagationPhase.TARGET
   leftClick.connect("pressed", () => {
-    try { entry.notif.invoke("default") } catch {}
+    activateNotif(entry.notif)
     app.toggle_window("notification-center")
   })
 
