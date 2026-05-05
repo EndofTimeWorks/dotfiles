@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+PREFIX="[Android] "
+
+shopt -s nullglob
+for file in "$APP_DIR"/waydroid.*.desktop; do
+  [ -f "$file" ] || continue
+
+  if grep -q '^Name=\[Android\] ' "$file"; then
+    continue
+  fi
+
+  tmp="$(mktemp)"
+  awk -v prefix="$PREFIX" '
+    BEGIN { in_entry = 0; renamed = 0 }
+    /^\[Desktop Entry\]/ { in_entry = 1; print; next }
+    /^\[/ && $0 != "[Desktop Entry]" { in_entry = 0; print; next }
+    in_entry && !renamed && /^Name=/ {
+      sub(/^Name=/, "Name=" prefix)
+      renamed = 1
+      print
+      next
+    }
+    { print }
+  ' "$file" > "$tmp"
+  mv "$tmp" "$file"
+done

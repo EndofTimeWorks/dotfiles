@@ -1,0 +1,31 @@
+{
+   "$schema": "https://vicinae.com/schemas/config.json",
+   "pop_to_root_on_close": true,
+   "close_on_focus_loss": true,
+   "search_files_in_root": true,
+   "theme": {
+      "dark": {
+         "name": "mariana-purple"
+      }
+   },
+   "telemetry": {
+      "system_info": false
+   },
+   "providers": {
+      "system": {
+         "entrypoints": {
+            "run": {
+               "alias": "!",
+               "preferences": {
+                  "default-action": "run"
+               }
+            }
+         }
+      },
+      "applications": {
+         "entrypoints": {
+            "run": {}
+         }
+      }
+   }
+}

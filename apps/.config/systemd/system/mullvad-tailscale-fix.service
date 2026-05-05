@@ -1,0 +1,14 @@
+[Unit]
+Description=Ensure Tailscale route bypasses Mullvad firewall
+After=network-online.target tailscaled.service mullvad-daemon.service
+Wants=network-online.target tailscaled.service mullvad-daemon.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/end/.local/bin/mullvad-tailscale-fix
+ExecStartPost=/usr/bin/sh -c '/usr/sbin/ip route show table main | /usr/bin/grep -q "100.64.0.0/10.*tailscale0"'
+ExecStartPost=/usr/bin/sh -c '/usr/sbin/nft list chain inet mullvad output | /usr/bin/grep -q "dotfiles-ts-daddr"'
+ExecStartPost=/usr/bin/sh -c '/usr/sbin/nft list chain inet mullvad output | /usr/bin/grep -q "dotfiles-ts-oif"'
+
+[Install]
+WantedBy=multi-user.target

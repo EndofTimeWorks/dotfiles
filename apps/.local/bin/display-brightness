@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/display"
+DIM_FILE="$STATE_DIR/dim"
+HW_STEP="${HW_STEP:-5}"
+DIM_STEP="${DIM_STEP:-0.08}"
+MAX_DIM="${MAX_DIM:-0.85}"
+MIN_BRIGHTNESS="${MIN_BRIGHTNESS:-1}"
+
+mkdir -p "$STATE_DIR"
+
+clamp_dim() {
+  awk -v v="${1:-0}" -v max="$MAX_DIM" 'BEGIN {
+    if (v < 0) v = 0
+    if (v > max) v = max
+    printf "%.2f\n", v
+  }'
+}
+
+get_dim() {
+  if [[ -f "$DIM_FILE" ]]; then
+    clamp_dim "$(cat "$DIM_FILE" 2>/dev/null || echo 0)"
+  else
+    echo "0.00"
+  fi
+}
+
+set_dim() {
+  clamp_dim "${1:-0}" > "$DIM_FILE"
+}
+
+get_brightness_pct() {
+  local cur max
+  cur="$(brightnessctl g)"
+  max="$(brightnessctl m)"
+  awk -v cur="$cur" -v max="$max" 'BEGIN {
+    if (max <= 0) { print 0; exit }
+    printf "%d\n", (cur / max) * 100 + 0.5
+  }'
+}
+
+set_brightness_pct() {
+  local value
+  value="${1:-1}"
+  if (( value < MIN_BRIGHTNESS )); then
+    value="$MIN_BRIGHTNESS"
+  fi
+  if (( value > 100 )); then
+    value=100
+  fi
+
+  brightnessctl s "${value}%"
+
+  if (( value > MIN_BRIGHTNESS )); then
+    set_dim 0
+  fi
+}
+
+status_cmd() {
+  printf 'brightness=%s\n' "$(get_brightness_pct)"
+  printf 'dim=%s\n' "$(get_dim)"
+}
+
+down_cmd() {
+  local brightness dim next
+  brightness="$(get_brightness_pct)"
+  if (( brightness > MIN_BRIGHTNESS )); then
+    brightnessctl set "${HW_STEP}%-"
+    if (( "$(get_brightness_pct)" < MIN_BRIGHTNESS )); then
+      brightnessctl s "${MIN_BRIGHTNESS}%"
+    fi
+    exit 0
+  fi
+
+  dim="$(get_dim)"
+  next="$(awk -v dim="$dim" -v step="$DIM_STEP" 'BEGIN { printf "%.2f\n", dim + step }')"
+  set_dim "$next"
+}
+
+up_cmd() {
+  local dim brightness next
+  dim="$(get_dim)"
+  if awk -v dim="$dim" 'BEGIN { exit !(dim > 0.001) }'; then
+    next="$(awk -v dim="$dim" -v step="$DIM_STEP" 'BEGIN { printf "%.2f\n", dim - step }')"
+    set_dim "$next"
+    exit 0
+  fi
+
+  brightness="$(get_brightness_pct)"
+  set_brightness_pct $((brightness + HW_STEP))
+}
+
+case "${1:-status}" in
+  status)
+    status_cmd
+    ;;
+  up)
+    up_cmd
+    ;;
+  down)
+    down_cmd
+    ;;
+  set-dim)
+    set_dim "${2:-0}"
+    ;;
+  set-brightness)
+    set_brightness_pct "${2:-1}"
+    ;;
+  *)
+    echo "Usage: display-brightness [status|up|down|set-dim <0..1>|set-brightness <1..100>]" >&2
+    exit 2
+    ;;
+esac

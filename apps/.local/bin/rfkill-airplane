@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+/home/end/.local/bin/rfkill-guard resume
+sudo -n /usr/bin/rfkill unblock wlan || /usr/bin/rfkill unblock wlan || true
+echo "Wi-Fi unblocked"

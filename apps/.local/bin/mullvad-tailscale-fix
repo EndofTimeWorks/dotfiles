@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SUBNET="100.64.0.0/10"
+RULE_TAG_DADDR="dotfiles-ts-daddr"
+RULE_TAG_OIF="dotfiles-ts-oif"
+LOG_TAG="mullvad-tailscale-fix"
+TS_DADDR_RULE="ip daddr ${SUBNET} accept"
+TS_OIF_RULE='oif "tailscale0" accept'
+
+log() {
+  logger -t "$LOG_TAG" -- "$*"
+}
+
+run_root() {
+  if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+    "$@"
+  else
+    sudo -n "$@"
+  fi
+}
+
+if [ "${EUID:-$(id -u)}" -ne 0 ] && ! sudo -n true >/dev/null 2>&1; then
+  echo "mullvad-tailscale-fix: root privileges required (use pkexec or configure sudo for this command)." >&2
+  log "failed: root privileges required"
+  exit 1
+fi
+
+if ! ip link show tailscale0 >/dev/null 2>&1; then
+  log "skip: tailscale0 missing"
+  exit 0
+fi
+
+run_root ip route replace "$SUBNET" dev tailscale0 table main
+log "route: ensured $SUBNET via tailscale0 in table main"
+
+if ! run_root nft list chain inet mullvad output >/dev/null 2>&1; then
+  log "skip: nft chain inet mullvad output missing"
+  exit 0
+fi
+
+chain_dump="$(run_root nft -a list chain inet mullvad output 2>/dev/null || true)"
+
+remove_unmanaged_rule_by_handle() {
+  local rule_pattern="$1"
+  local rule_tag="$2"
+  local rule_name="$3"
+  local handles=""
+
+  handles="$(printf '%s\n' "$chain_dump" \
+    | grep -F "$rule_pattern" \
+    | grep -vF "comment \"$rule_tag\"" \
+    | grep -oE 'handle [0-9]+' \
+    | cut -d' ' -f2 \
+    || true)"
+
+  if [ -z "$handles" ]; then
+    return
+  fi
+
+  while read -r handle; do
+    [ -n "$handle" ] || continue
+    run_root nft delete rule inet mullvad output handle "$handle"
+    log "nft: removed stale ${rule_name} rule handle $handle"
+  done <<< "$handles"
+
+  chain_dump="$(run_root nft -a list chain inet mullvad output 2>/dev/null || true)"
+}
+
+remove_unmanaged_rule_by_handle "$TS_DADDR_RULE" "$RULE_TAG_DADDR" "daddr"
+remove_unmanaged_rule_by_handle "$TS_OIF_RULE" "$RULE_TAG_OIF" "oif"
+
+if ! printf '%s\n' "$chain_dump" | grep -q "comment \"$RULE_TAG_DADDR\""; then
+  run_root nft insert rule inet mullvad output ip daddr "$SUBNET" accept comment "$RULE_TAG_DADDR"
+  log "nft: inserted daddr bypass rule"
+else
+  log "nft: daddr bypass rule already present"
+fi
+
+chain_dump="$(run_root nft -a list chain inet mullvad output 2>/dev/null || true)"
+
+if ! printf '%s\n' "$chain_dump" | grep -q "comment \"$RULE_TAG_OIF\""; then
+  run_root nft insert rule inet mullvad output oif "tailscale0" accept comment "$RULE_TAG_OIF"
+  log "nft: inserted oif bypass rule"
+else
+  log "nft: oif bypass rule already present"
+fi

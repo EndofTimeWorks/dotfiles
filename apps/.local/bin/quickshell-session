@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Force Quickshell onto the KDE platform theme with Breeze widgets so
+# native tray menus stay dark under niri without spoofing desktop identity.
+export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-kde}"
+export QT_STYLE_OVERRIDE="${QT_STYLE_OVERRIDE:-Breeze}"
+unset KVANTUM_THEME
+
+exec quickshell --no-duplicate -p "${HOME}/.config/quickshell"

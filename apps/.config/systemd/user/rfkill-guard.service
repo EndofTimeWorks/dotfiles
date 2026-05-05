@@ -1,0 +1,12 @@
+[Unit]
+Description=Keep Wi-Fi unblocked on accidental rfkill toggles
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/home/end/.local/bin/rfkill-guard daemon
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

@@ -261,15 +261,16 @@ layout {
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
-spawn-at-startup "bash" "-c" "ags run /home/end/.config/ags"
+spawn-at-startup "bash" "-lc" "~/.local/bin/quickshell-session"
 spawn-at-startup "vicinae" "server"
+spawn-at-startup "swayidle" "-w" "timeout" "600" "systemctl suspend" "before-sleep" "hyprlock"
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 spawn-at-startup "wallpaper-init"
 spawn-at-startup "signal-desktop"
-spawn-at-startup "discord"
+spawn-at-startup "discord-canary"
 spawn-at-startup "zen-browser"
 spawn-at-startup "qpwgraph" "--minimized"
-spawn-at-startup "wezterm"
+spawn-at-startup "bash" "-lc" "wezterm & sleep 1; helium-browser & sleep 1; obsidian & sleep 1; thunderbird"
 
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.
@@ -349,6 +350,7 @@ window-rule {
     match app-id=r#"^org\.gnome\.World\.Secrets$"#
     match app-id=r#"^signal$"#
     match app-id=r#"^com\.discordapp\.Discord$"#
+    match app-id="discord-canary"
    /-  match app-id=r#"^org\.wezfurlong\.wezterm$"#
     match app-id=r#"^Bitwarden$"#
     block-out-from "screen-capture"
@@ -363,22 +365,28 @@ window-rule {
 
 // Workspace 1: productivity / personal
 window-rule {
-    match app-id="helium"
-    match app-id=r#"^org\.wezfurlong\.wezterm$"#
-    match app-id="obsidian"
-    match app-id="thunderbird"
+    match at-startup=true app-id="helium"
+    match at-startup=true app-id=r#"^org\.wezfurlong\.wezterm$"#
+    match at-startup=true app-id="obsidian"
+    match at-startup=true app-id="thunderbird"
+    match at-startup=true app-id="org.mozilla.Thunderbird"
     open-on-workspace "main"
+    open-maximized true
 }
 
 // Workspace 2: comms / social
 window-rule {
-    match app-id="steam"
-    match app-id=r#"^signal$"#
-    match app-id=r#"^com\.discordapp\.Discord$"#
-    match app-id="discord"
-    match app-id=r#"zen-browser$"#
-    match app-id="slack"
+    match at-startup=true app-id="steam"
+    match at-startup=true app-id=r#"^signal$"#
+    match at-startup=true app-id=r#"^com\.discordapp\.Discord$"#
+    match at-startup=true app-id="discord"
+    match at-startup=true app-id="discord-canary"
+    match at-startup=true app-id="zen"
+    match at-startup=true app-id="zen-browser"
+    match at-startup=true app-id="Slack"
+    match at-startup=true app-id="slack"
     open-on-workspace "comms"
+    open-maximized true
 }
 
 // Float pavucontrol
@@ -418,8 +426,14 @@ binds {
     XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1-"; }
     XF86AudioMute        allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
     XF86AudioMicMute     allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle"; }
-    XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "set" "5%+"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "5%-"; }
+    XF86AudioPlay allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioPause allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioNext allow-when-locked=true { spawn "playerctl" "next"; }
+    XF86AudioPrev allow-when-locked=true { spawn "playerctl" "previous"; }
+    XF86WLAN allow-when-locked=true { spawn "/home/end/.local/bin/rfkill-airplane"; }
+    XF86RFKill allow-when-locked=true { spawn "/home/end/.local/bin/rfkill-airplane"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn "/home/end/.local/bin/display-brightness" "up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "/home/end/.local/bin/display-brightness" "down"; }
 
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,

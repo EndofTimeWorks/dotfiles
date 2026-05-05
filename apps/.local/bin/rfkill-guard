@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/rfkill-guard"
+PAUSE_FILE="$STATE_DIR/paused"
+
+mkdir -p "$STATE_DIR"
+
+wifi_soft_blocked() {
+  rfkill list wifi 2>/dev/null | grep -q "Soft blocked: yes"
+}
+
+unblock_wifi() {
+  sudo -n /usr/bin/rfkill unblock wlan || /usr/bin/rfkill unblock wlan || true
+}
+
+log_msg() {
+  logger -t rfkill-guard "$*"
+}
+
+daemon_mode() {
+  if [[ ! -f "$PAUSE_FILE" ]] && wifi_soft_blocked; then
+    unblock_wifi
+    log_msg "startup soft block detected; unblocked wlan"
+  fi
+
+  rfkill event | while read -r _line; do
+    [[ -f "$PAUSE_FILE" ]] && continue
+
+    if wifi_soft_blocked; then
+      unblock_wifi
+      log_msg "unexpected wifi soft block detected; unblocked wlan"
+    fi
+  done
+}
+
+pause_mode() {
+  touch "$PAUSE_FILE"
+  echo "rfkill-guard: paused"
+}
+
+resume_mode() {
+  rm -f "$PAUSE_FILE"
+  unblock_wifi
+  echo "rfkill-guard: resumed"
+}
+
+status_mode() {
+  if [[ -f "$PAUSE_FILE" ]]; then
+    echo "rfkill-guard: paused"
+  else
+    echo "rfkill-guard: active"
+  fi
+
+  rfkill list wifi || true
+}
+
+case "${1:-daemon}" in
+  daemon)
+    daemon_mode
+    ;;
+  pause)
+    pause_mode
+    ;;
+  resume)
+    resume_mode
+    ;;
+  status)
+    status_mode
+    ;;
+  *)
+    echo "Usage: rfkill-guard [daemon|pause|resume|status]" >&2
+    exit 2
+    ;;
+esac
