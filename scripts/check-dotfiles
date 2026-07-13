@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+failed=0
+
+check() {
+  local label="$1"
+  shift
+
+  printf 'checking %s... ' "$label"
+  if "$@"; then
+    echo ok
+  else
+    echo failed
+    failed=1
+  fi
+}
+
+check "Git whitespace" git diff --check
+check "Niri configuration" niri validate -c apps/.config/niri/config.kdl
+
+for script in apps/.local/bin/* scripts/*; do
+  [[ -f "$script" ]] || continue
+  [[ "$(head -n 1 "$script")" == *bash* ]] || continue
+  check "shell syntax: $script" bash -n "$script"
+done
+
+if command -v shellcheck >/dev/null 2>&1; then
+  mapfile -t shell_scripts < <(
+    for script in apps/.local/bin/* scripts/*; do
+      [[ -f "$script" ]] || continue
+      [[ "$(head -n 1 "$script")" == *bash* ]] && printf '%s\n' "$script"
+    done
+  )
+  check "ShellCheck" shellcheck "${shell_scripts[@]}"
+fi
+
+if command -v systemd-analyze >/dev/null 2>&1; then
+  while IFS= read -r unit; do
+    check "systemd unit: $unit" systemd-analyze verify "$unit"
+  done < <(find apps/.config/systemd -type f \( -name '*.service' -o -name '*.timer' \) -print | sort)
+fi
+
+if nix store ping --store daemon >/dev/null 2>&1; then
+  check "Home Manager evaluation" \
+    nix build --no-link "path:${repo_root}#homeConfigurations.end.activationPackage"
+else
+  echo "skipping Home Manager evaluation: Nix daemon is unavailable"
+fi
+
+exit "$failed"
