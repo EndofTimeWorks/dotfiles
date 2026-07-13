@@ -220,8 +220,8 @@ Files:
 
 ```text
 apps/.local/bin/mullvad-tailscale-fix
-apps/.config/systemd/system/mullvad-tailscale-fix.service
-apps/.config/systemd/system/mullvad-tailscale-fix.timer
+system/systemd/mullvad-tailscale-fix.service
+system/systemd/mullvad-tailscale-fix.timer
 mullvad_tailscale.conf
 ```
 
@@ -229,8 +229,8 @@ Install the root service:
 
 ```bash
 sudo install -Dm755 /home/end/Projects/dotfiles/apps/.local/bin/mullvad-tailscale-fix /home/end/.local/bin/mullvad-tailscale-fix
-sudo install -Dm644 /home/end/Projects/dotfiles/apps/.config/systemd/system/mullvad-tailscale-fix.service /etc/systemd/system/mullvad-tailscale-fix.service
-sudo install -Dm644 /home/end/Projects/dotfiles/apps/.config/systemd/system/mullvad-tailscale-fix.timer /etc/systemd/system/mullvad-tailscale-fix.timer
+sudo install -Dm644 /home/end/Projects/dotfiles/system/systemd/mullvad-tailscale-fix.service /etc/systemd/system/mullvad-tailscale-fix.service
+sudo install -Dm644 /home/end/Projects/dotfiles/system/systemd/mullvad-tailscale-fix.timer /etc/systemd/system/mullvad-tailscale-fix.timer
 sudo systemctl daemon-reload
 sudo systemctl enable --now mullvad-tailscale-fix.timer
 sudo systemctl start mullvad-tailscale-fix.service
