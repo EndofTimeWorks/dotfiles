@@ -11,13 +11,24 @@ Primary desktop stack:
 - `zed`
 - `vicinae`
 
-The expected checkout path is:
+The expected checkout path is case-sensitive:
 
 ```bash
-/home/end/projects/dotfiles
+/home/end/Projects/dotfiles
 ```
 
-## Quick Apply
+## Configuration Ownership
+
+The current Arch installation uses GNU Stow. Home Manager is present as a
+migration target, but it must not be activated on top of an existing Stow tree
+without first checking conflicts. Both methods point at the same repository;
+they are not meant to own the same live path simultaneously.
+
+Generated application state is intentionally excluded. In particular,
+`fish_variables`, Zed backup files, private application state, and raw archives
+are not deployment inputs.
+
+## Quick Apply With Stow
 
 From the repo root:
 
@@ -38,6 +49,7 @@ quickshell kill -p ~/.config/quickshell 2>/dev/null || true
 nohup ~/.local/bin/quickshell-session >/tmp/quickshell.log 2>&1 & disown
 systemctl --user daemon-reload
 systemctl --user enable --now rfkill-guard.service
+systemctl --user enable --now swayidle.service
 ```
 
 ## Packages Needed
@@ -98,10 +110,10 @@ Manual lock is still available:
 Super+Alt+L
 ```
 
-Auto-lock / auto-suspend is currently disabled in `config.kdl`.
-The previous `swayidle` autostart was locking the session repeatedly while the
-session was active, so it is left commented out until a safer idle setup is
-chosen.
+Idle handling runs through `swayidle.service`. After 15 minutes of compositor
+idle time it starts hyprlock and suspends. Niri starts the service idempotently,
+so reloading Niri does not restart the idle timer or create duplicate swayidle
+processes.
 
 ## Quickshell
 
@@ -216,9 +228,9 @@ mullvad_tailscale.conf
 Install the root service:
 
 ```bash
-sudo install -Dm755 /home/end/projects/dotfiles/apps/.local/bin/mullvad-tailscale-fix /home/end/.local/bin/mullvad-tailscale-fix
-sudo install -Dm644 /home/end/projects/dotfiles/apps/.config/systemd/system/mullvad-tailscale-fix.service /etc/systemd/system/mullvad-tailscale-fix.service
-sudo install -Dm644 /home/end/projects/dotfiles/apps/.config/systemd/system/mullvad-tailscale-fix.timer /etc/systemd/system/mullvad-tailscale-fix.timer
+sudo install -Dm755 /home/end/Projects/dotfiles/apps/.local/bin/mullvad-tailscale-fix /home/end/.local/bin/mullvad-tailscale-fix
+sudo install -Dm644 /home/end/Projects/dotfiles/apps/.config/systemd/system/mullvad-tailscale-fix.service /etc/systemd/system/mullvad-tailscale-fix.service
+sudo install -Dm644 /home/end/Projects/dotfiles/apps/.config/systemd/system/mullvad-tailscale-fix.timer /etc/systemd/system/mullvad-tailscale-fix.timer
 sudo systemctl daemon-reload
 sudo systemctl enable --now mullvad-tailscale-fix.timer
 sudo systemctl start mullvad-tailscale-fix.service
@@ -301,7 +313,7 @@ HandleLidSwitchDocked=ignore
 ```ini
 [Sleep]
 AllowSuspendThenHibernate=yes
-HibernateDelaySec=3h
+HibernateDelaySec=2h
 HibernateOnACPower=no
 SuspendEstimationSec=10min
 ```
@@ -343,6 +355,31 @@ plasma/.config/QtProject.conf
 ```
 
 Do not blindly stow Plasma without reviewing the diff first.
+
+## Home Manager And NixOS
+
+`flake.nix` currently defines only `homeConfigurations.end`. It is useful for
+testing the user configuration on Arch, but it is not a bootable NixOS system
+configuration. Do not run `nixos-install` from this repository yet.
+
+Build the Home Manager activation package without applying it:
+
+```bash
+nix build --no-link .#homeConfigurations.end.activationPackage
+```
+
+The eventual NixOS configuration must add a verified
+`nixosConfigurations.frametimee` with current hardware, filesystems, boot,
+networking, graphics, PAM/fingerprint, power, VPN, printing, and virtualization
+configuration.
+
+## Validation
+
+Run the repository checks before applying or committing changes:
+
+```bash
+./scripts/check-dotfiles
+```
 
 ## Troubleshooting
 
