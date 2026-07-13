@@ -14,9 +14,6 @@ end
 
 status --is-interactive; and . (fnm env --use-on-cd | psub)
 
-# opencode
-fish_add_path /home/end/.opencode/bin
-
 status --is-interactive; and rbenv init - fish | source
 ~/.local/bin/mise activate fish | source
 

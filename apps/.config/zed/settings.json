@@ -7,8 +7,25 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
-  "edit_predictions": {
-    "provider": "copilot"
+  "agent": {
+    "dock": "right",
+    "favorite_models": [],
+    "model_parameters": []
+  },
+  "agent_servers": {
+    "opencode": {
+      "type": "registry"
+    },
+    "gemini": {
+      "type": "registry"
+    },
+    "codex-acp": {
+      "default_config_options": {
+        "fast-mode": "off",
+        "reasoning_effort": "high"
+      },
+      "type": "registry"
+    }
   },
   "proxy": "",
   "tabs": {
@@ -31,11 +48,6 @@
     "metrics": false
   },
   "redact_private_values": true,
-  "agent_servers": {
-    "opencode": {
-      "type": "registry"
-    }
-  },
   "project_panel": {
     "git_status_indicator": true,
     "diagnostic_badges": true,
@@ -50,82 +62,6 @@
   },
   "git_panel": {
     "dock": "left"
-  },
-  "agent": {
-    "profiles": {
-      
-    },
-    "cancel_generation_on_terminal_stop": false,
-    "sidebar_side": "left",
-    "dock": "right",
-    "favorite_models": [
-      {
-        "provider": "copilot_chat",
-        "model": "claude-sonnet-4.6",
-        "enable_thinking": false
-      },
-      {
-        "provider": "copilot_chat",
-        "model": "gpt-5-mini",
-        "enable_thinking": false
-      },
-      {
-        "provider": "copilot_chat",
-        "model": "claude-opus-4.6",
-        "enable_thinking": false
-      },
-      {
-        "provider": "copilot_chat",
-        "model": "claude-opus-4.5",
-        "enable_thinking": false
-      },
-      {
-        "provider": "copilot_chat",
-        "model": "claude-sonnet-4.5",
-        "enable_thinking": false
-      }
-    ],
-    "tool_permissions": {
-      "tools": {
-        "fetch": {
-          "always_allow": [
-            {
-              "pattern": "^https?://www\\.better\\-auth\\.com"
-            }
-          ]
-        },
-        "terminal": {
-          "always_allow": [
-            {
-              "pattern": "^git\\s+show(\\s|$)"
-            },
-            {
-              "pattern": "^which\\s+psql(\\s|$)"
-            },
-            {
-              "pattern": "^ls\\b"
-            },
-            {
-              "pattern": "^which\\s+pg_ctl(\\s|$)"
-            },
-            {
-              "pattern": "^cat\\b"
-            },
-            {
-              "pattern": "^diff\\b"
-            }
-          ]
-        }
-      }
-    },
-    "default_profile": "write",
-    "default_model": {
-      "effort": "high",
-      "enable_thinking": true,
-      "provider": "copilot_chat",
-      "model": "gpt-5.3-codex"
-    },
-    "model_parameters": []
   },
   "autosave": "on_focus_change",
   "base_keymap": "VSCode",
