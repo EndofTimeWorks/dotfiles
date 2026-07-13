@@ -235,7 +235,7 @@ Scope {
             root.history = arr
             if (!replaced) root.unread++
 
-            if (root.mode !== "dnd") {
+            if (root.mode !== "dnd" || notif.urgency === NotificationUrgency.Critical) {
                 var toast = {
                     id: entry.id,
                     time: entry.time,
@@ -255,7 +255,7 @@ Scope {
                 if (!toastReplaced) toastModel.append(toast)
             }
 
-            var ms = notif.expireTimeout > 0 ? notif.expireTimeout : 8000
+            var ms = notif.expireTimeout > 0 ? notif.expireTimeout * 1000 : 8000
             expireTimer.createObject(root, { notifId: notif.id, notifTime: entry.time, delay: ms })
         }
     }

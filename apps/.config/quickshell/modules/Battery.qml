@@ -15,9 +15,6 @@ Item {
     property int stableEstimateMinutes: -1
     property int stableEstimateCount: 0
     property int alertStage: 0
-    property string alertTitle: ""
-    property string alertBody: ""
-    property string alertColor: "#fac863"
 
     function alertText() {
         var left = displayTimeLeft()
@@ -26,22 +23,6 @@ Item {
         if (timeLeft !== "")
             return pct + "% remaining • " + timeLeft + " left"
         return pct + "% remaining"
-    }
-
-    function showBatteryWarning(stage) {
-        if (stage === 2) {
-            alertTitle = "Battery critical"
-            alertBody = alertText() + ". Plug in now."
-            alertColor = "#ec5f89"
-        } else {
-            alertTitle = "Battery low"
-            alertBody = alertText()
-            alertColor = "#fac863"
-        }
-
-        warningPopup.visible = true
-        warningTimer.interval = stage === 2 ? 30000 : 18000
-        warningTimer.restart()
     }
 
     function parseEstimateMinutes(text) {
@@ -111,14 +92,12 @@ Item {
     function maybeAlert() {
         if (charging) {
             alertStage = 0
-            warningPopup.visible = false
             return
         }
 
         if (pct <= 5) {
             if (alertStage < 2) {
                 criticalAlert.running = true
-                showBatteryWarning(2)
                 alertStage = 2
             }
             return
@@ -127,7 +106,6 @@ Item {
         if (pct <= 20) {
             if (alertStage < 1) {
                 lowAlert.running = true
-                showBatteryWarning(1)
                 alertStage = 1
             }
             return
@@ -207,14 +185,6 @@ Item {
         ]
     }
 
-    Timer {
-        id: warningTimer
-        interval: 18000
-        running: false
-        repeat: false
-        onTriggered: warningPopup.visible = false
-    }
-
     Rectangle {
         anchors.fill: parent
         color: ma.containsMouse ? "#141628" : "transparent"
@@ -274,74 +244,4 @@ Item {
         }
     }
 
-    PopupWindow {
-        id: warningPopup
-        visible: false
-        grabFocus: false
-        anchor.window: barWindow
-        anchor.rect.x: barWindow ? Math.max(8, Math.floor((barWindow.width - 380) / 2)) : 0
-        anchor.rect.y: barWindow ? barWindow.implicitHeight + 8 : 58
-        implicitWidth: 380
-        implicitHeight: 112
-        color: "transparent"
-
-        Rectangle {
-            anchors.fill: parent
-            color: "#0f1120"
-            radius: 16
-            border.color: alertColor
-            border.width: 2
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: warningPopup.visible = false
-            }
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: 14
-                spacing: 12
-
-                Text {
-                    text: pct <= 5 ? "󰂃" : "󰁺"
-                    color: alertColor
-                    font.family: "Maple Mono NF"
-                    font.pixelSize: 32
-                    Layout.alignment: Qt.AlignVCenter
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing: 4
-
-                    Text {
-                        text: alertTitle
-                        color: "#cdd6f4"
-                        font.family: "Maple Mono NF"
-                        font.pixelSize: 16
-                        font.bold: true
-                        Layout.fillWidth: true
-                    }
-
-                    Text {
-                        text: alertBody
-                        color: "#a6accd"
-                        font.family: "Maple Mono NF"
-                        font.pixelSize: 12
-                        wrapMode: Text.WordWrap
-                        Layout.fillWidth: true
-                    }
-
-                    Text {
-                        text: "click to dismiss"
-                        color: "#5f668a"
-                        font.family: "Maple Mono NF"
-                        font.pixelSize: 10
-                        Layout.fillWidth: true
-                    }
-                }
-            }
-        }
-    }
 }
