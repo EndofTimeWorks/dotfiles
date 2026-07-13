@@ -1,5 +1,8 @@
 --target=/home/end
 --ignore=^\.config/ags/@girs/
+--ignore=^\.config/fish/fish_variables$
+--ignore=^\.config/obsidian(/.*)?$
+--ignore=^\.config/zed/.*\.bak$
 --ignore=^\.config/zed/settings_backup\.json$
 --ignore=^\.config/QtProject\.conf$
 --ignore=^\.config/kwinoutputconfig\.json$
