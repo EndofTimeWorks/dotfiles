@@ -1,7 +1,9 @@
 --target=/home/end
---ignore=^\.config/ags/@girs/
+--ignore=^\.config/ags(/.*)?$
+--ignore=^\.config/kwalletrc$
 --ignore=^\.config/fish/fish_variables$
 --ignore=^\.config/obsidian(/.*)?$
+--ignore=^\.config/systemd/system(/.*)?$
 --ignore=^\.config/zed/.*\.bak$
 --ignore=^\.config/zed/settings_backup\.json$
 --ignore=^\.config/QtProject\.conf$

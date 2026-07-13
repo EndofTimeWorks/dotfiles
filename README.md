@@ -28,6 +28,9 @@ Generated application state is intentionally excluded. In particular,
 `fish_variables`, Zed backup files, private application state, and raw archives
 are not deployment inputs.
 
+The tracked `apps/.config/ags` tree is a legacy reference implementation. Stow
+intentionally ignores it; Quickshell is the only deployed and launched shell.
+
 ## Quick Apply With Stow
 
 From the repo root:
