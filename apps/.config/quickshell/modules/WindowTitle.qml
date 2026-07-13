@@ -31,7 +31,6 @@ Item {
         anchors.fill: parent
         anchors.leftMargin: 6
         anchors.rightMargin: 6
-        anchors.verticalCenter: parent.verticalCenter
         text: title
         color: "#7f849c"
         font.family: "Maple Mono NF"

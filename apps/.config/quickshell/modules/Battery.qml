@@ -133,7 +133,8 @@ Item {
             return
         }
 
-        alertStage = 0
+        if (pct > 25)
+            alertStage = 0
     }
 
     function batIcon() {
@@ -166,7 +167,10 @@ Item {
                         var parsedPct = parseInt(t.split(":")[1])
                         if (!isNaN(parsedPct)) nextPct = parsedPct
                     }
-                    if (t.startsWith("state:")) nextCharging = t.indexOf("charging") !== -1 && t.indexOf("discharging") === -1
+                    if (t.startsWith("state:")) {
+                        var state = t.split(":").slice(1).join(":").trim()
+                        nextCharging = state === "charging" || state === "fully-charged" || state === "pending-charge"
+                    }
                     if (t.startsWith("time to")) nextTimeLeft = t.split(":").slice(1).join(":").trim()
                 }
                 pct = nextPct

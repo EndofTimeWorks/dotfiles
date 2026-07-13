@@ -67,12 +67,10 @@ Item {
         anchor.rect.x: barWindow ? Math.max(8, barWindow.width - 360 - 8) : 0
         anchor.rect.y: barWindow ? barWindow.implicitHeight : 50
         implicitWidth: 360
-        implicitHeight: Math.min(headerH + listH, 480)
+        implicitHeight: Math.min(headerH + (history.length === 0 ? 30 : notifCol.implicitHeight), 480)
         color: "transparent"
 
         readonly property int headerH: 72
-        readonly property int perNotif: 62
-        readonly property int listH: history.length === 0 ? 30 : history.length * perNotif
 
         Rectangle {
             anchors.fill: parent

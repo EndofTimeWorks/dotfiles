@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: wallpaper ~/Pictures/wall.jpg
 #        wallpaper "#16161e"   (solid color)
-set -e
+set -euo pipefail
 
 TARGET="${1:-}"
 
@@ -10,10 +10,15 @@ if [[ -z "$TARGET" ]]; then
   exit 1
 fi
 
+if [[ "$TARGET" != \#* && ! -f "$TARGET" ]]; then
+  echo "wallpaper: image does not exist: $TARGET" >&2
+  exit 1
+fi
+
 STATE="$HOME/.config/wallpaper"
 
 # Save for next login
-echo "$TARGET" > "$STATE"
+printf '%s\n' "$TARGET" > "$STATE"
 
 # Kill existing swaybg
 pkill -x swaybg 2>/dev/null || true
@@ -21,9 +26,9 @@ sleep 0.1
 
 # Apply
 if [[ "$TARGET" == \#* ]]; then
-  swaybg -c "$TARGET" &
+  nohup swaybg -c "$TARGET" >/tmp/swaybg.log 2>&1 &
 else
-  swaybg -i "$TARGET" -m fill &
+  nohup swaybg -i "$TARGET" -m fill >/tmp/swaybg.log 2>&1 &
 fi
 
 disown

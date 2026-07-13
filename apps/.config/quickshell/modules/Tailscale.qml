@@ -25,6 +25,13 @@ Item {
                 } catch (e) {}
             }
         }
+        onExited: (code) => {
+            if (code !== 0) {
+                up = false
+                ip = ""
+                peers = 0
+            }
+        }
     }
 
     Timer { interval: 5000; running: true; repeat: true; onTriggered: pollProc.running = true }

@@ -222,23 +222,41 @@ Scope {
             }
 
             var arr = root.history.slice()
-            arr.push(entry)
+            var replaced = false
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i].id === entry.id) {
+                    arr[i] = entry
+                    replaced = true
+                    break
+                }
+            }
+            if (!replaced) arr.push(entry)
             if (arr.length > 100) arr.shift()
             root.history = arr
-            root.unread++
+            if (!replaced) root.unread++
 
             if (root.mode !== "dnd") {
-                toastModel.append({
+                var toast = {
                     id: entry.id,
+                    time: entry.time,
                     app: entry.app,
                     summary: entry.summary,
                     body: entry.body,
                     desktopEntry: entry.desktopEntry,
-                })
+                }
+                var toastReplaced = false
+                for (var j = 0; j < toastModel.count; j++) {
+                    if (toastModel.get(j).id === entry.id) {
+                        toastModel.set(j, toast)
+                        toastReplaced = true
+                        break
+                    }
+                }
+                if (!toastReplaced) toastModel.append(toast)
             }
 
             var ms = notif.expireTimeout > 0 ? notif.expireTimeout : 8000
-            expireTimer.createObject(root, { notifId: notif.id, delay: ms })
+            expireTimer.createObject(root, { notifId: notif.id, notifTime: entry.time, delay: ms })
         }
     }
 
@@ -246,13 +264,14 @@ Scope {
         id: expireTimer
         Timer {
             property int notifId
+            property double notifTime
             property int delay: 8000
             interval: delay
             running: true
             repeat: false
             onTriggered: {
                 for (var i = 0; i < toastModel.count; i++) {
-                    if (toastModel.get(i).id === notifId) {
+                    if (toastModel.get(i).id === notifId && toastModel.get(i).time === notifTime) {
                         toastModel.remove(i)
                         break
                     }

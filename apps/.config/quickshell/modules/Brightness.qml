@@ -13,6 +13,11 @@ Item {
     property real dim: 0.0
     property var setDimFn
 
+    function refreshStatus() {
+        if (!brightnessSlider.pressed && !dimSlider.pressed && !setProc.running && !setDimProc.running)
+            proc.running = true
+    }
+
     Process {
         id: proc
         command: ["bash", "-lc", "~/.local/bin/display-brightness status"]
@@ -32,17 +37,39 @@ Item {
         }
     }
 
-    Timer { interval: 2000; running: true; repeat: true; onTriggered: proc.running = true }
+    Timer { interval: 2000; running: true; repeat: true; onTriggered: refreshStatus() }
     Component.onCompleted: proc.running = true
 
     Process {
         id: setProc
         command: ["bash", "-lc", "~/.local/bin/display-brightness set-brightness " + brightness]
+        onExited: refreshStatus()
     }
 
     Process {
         id: setDimProc
         command: ["bash", "-lc", "~/.local/bin/display-brightness set-dim " + dim.toFixed(2)]
+        onExited: refreshStatus()
+    }
+
+    Timer {
+        id: brightnessWriteTimer
+        interval: 50
+        repeat: false
+        onTriggered: {
+            if (setProc.running) restart()
+            else setProc.running = true
+        }
+    }
+
+    Timer {
+        id: dimWriteTimer
+        interval: 50
+        repeat: false
+        onTriggered: {
+            if (setDimProc.running) restart()
+            else setDimProc.running = true
+        }
     }
 
     Rectangle {
@@ -100,14 +127,14 @@ Item {
             }
 
             Slider {
+                id: brightnessSlider
                 width: parent.width
                 from: 1
                 to: 100
                 value: brightness
                 onMoved: {
                     brightness = Math.round(value)
-                    setProc.running = true
-                    proc.running = true
+                    brightnessWriteTimer.restart()
                 }
             }
 
@@ -118,15 +145,15 @@ Item {
             }
 
             Slider {
+                id: dimSlider
                 width: parent.width
                 from: 0
                 to: 1
                 value: dim
                 onMoved: {
                     dim = value
-                    setDimProc.running = true
+                    dimWriteTimer.restart()
                     if (setDimFn) setDimFn(value)
-                    proc.running = true
                 }
             }
         }

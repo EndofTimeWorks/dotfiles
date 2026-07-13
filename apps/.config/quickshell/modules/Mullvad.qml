@@ -33,6 +33,13 @@ Item {
                 ip = ipMatch && ipMatch[1] ? ipMatch[1] : ""
             }
         }
+        onExited: (code) => {
+            if (code !== 0) {
+                connected = false
+                location = ""
+                ip = ""
+            }
+        }
     }
 
     Timer { interval: 5000; running: true; repeat: true; onTriggered: pollProc.running = true }
@@ -49,7 +56,10 @@ Item {
     Process {
         id: favoriteProc
         command: ["true"]
-        onExited: reconnectProc.running = true
+        onExited: (code) => {
+            if (code === 0) reconnectProc.running = true
+            else pollProc.running = true
+        }
     }
 
     Process {

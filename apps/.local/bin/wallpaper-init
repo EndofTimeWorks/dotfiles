@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
 STATE="$HOME/.config/wallpaper"
+pkill -x swaybg 2>/dev/null || true
+
 if [[ -f "$STATE" ]]; then
   TARGET="$(cat "$STATE")"
   if [[ "$TARGET" == \#* ]]; then
-    swaybg -c "$TARGET" &
+    nohup swaybg -c "$TARGET" >/tmp/swaybg.log 2>&1 &
+  elif [[ -f "$TARGET" ]]; then
+    nohup swaybg -i "$TARGET" -m fill >/tmp/swaybg.log 2>&1 &
   else
-    swaybg -i "$TARGET" -m fill &
+    nohup swaybg -c "#16161e" >/tmp/swaybg.log 2>&1 &
   fi
 else
-  swaybg -c "#16161e" &
+  nohup swaybg -c "#16161e" >/tmp/swaybg.log 2>&1 &
 fi
 disown

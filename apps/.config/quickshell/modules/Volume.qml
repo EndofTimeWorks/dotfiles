@@ -16,8 +16,8 @@ Item {
 
     property var sink: Pipewire.defaultAudioSink
     property var source: Pipewire.defaultAudioSource
-    property int vol: sink?.audio ? Math.round(sink.audio.volume * 100) : 0
-    property bool muted: sink?.audio?.muted ?? false
+    property int vol: sink && sink.audio ? Math.round(sink.audio.volume * 100) : 0
+    property bool muted: sink && sink.audio ? sink.audio.muted : false
 
     function volIcon() {
         if (muted || vol === 0) return "󰝟"
@@ -38,7 +38,7 @@ Item {
             acceptedButtons: Qt.LeftButton | Qt.MiddleButton
             onClicked: (mouse) => {
                 if (mouse.button === Qt.MiddleButton) {
-                    if (sink?.audio) sink.audio.muted = !sink.audio.muted
+                    if (sink && sink.audio) sink.audio.muted = !sink.audio.muted
                 } else {
                     popup.visible = !popup.visible
                 }
@@ -93,15 +93,15 @@ Item {
                 width: parent.width
                 from: 0
                 to: 1.5
-                value: sink?.audio?.volume ?? 0
-                onMoved: { if (sink?.audio) sink.audio.volume = value }
+                value: sink && sink.audio ? sink.audio.volume : 0
+                onMoved: { if (sink && sink.audio) sink.audio.volume = value }
             }
 
             Row {
                 width: parent.width
                 spacing: 8
-                property int micVol: source?.audio ? Math.round(source.audio.volume * 100) : 0
-                property bool micMuted: source?.audio?.muted ?? false
+                property int micVol: source && source.audio ? Math.round(source.audio.volume * 100) : 0
+                property bool micMuted: source && source.audio ? source.audio.muted : false
                 Text { text: parent.micMuted ? "󰍭" : "󰍬"; color: parent.micMuted ? "#7f849c" : "#c792ea"; font.family: "Maple Mono NF"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
                 Text { text: "Mic"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
                 Text { text: parent.micVol + "%"; color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
@@ -111,8 +111,8 @@ Item {
                 width: parent.width
                 from: 0
                 to: 1
-                value: source?.audio?.volume ?? 0
-                onMoved: { if (source?.audio) source.audio.volume = value }
+                value: source && source.audio ? source.audio.volume : 0
+                onMoved: { if (source && source.audio) source.audio.volume = value }
             }
         }
     }
