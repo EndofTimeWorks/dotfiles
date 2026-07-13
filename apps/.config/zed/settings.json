@@ -13,12 +13,6 @@
     "model_parameters": []
   },
   "agent_servers": {
-    "opencode": {
-      "type": "registry"
-    },
-    "gemini": {
-      "type": "registry"
-    },
     "codex-acp": {
       "default_config_options": {
         "fast-mode": "off",
