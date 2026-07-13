@@ -62,7 +62,7 @@ Item {
     PopupWindow {
         id: panel
         visible: false
-        grabFocus: true
+        grabFocus: false
         anchor.window: barWindow
         anchor.rect.x: barWindow ? Math.max(8, barWindow.width - 360 - 8) : 0
         anchor.rect.y: barWindow ? barWindow.implicitHeight : 50

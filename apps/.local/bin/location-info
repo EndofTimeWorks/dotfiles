@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/location"
+CACHE_FILE="$STATE_DIR/ip-location.json"
+GEOCLUE_CACHE_FILE="$STATE_DIR/geoclue-location.env"
+CACHE_TTL_SECONDS="${LOCATION_CACHE_TTL_SECONDS:-21600}"
+
+mkdir -p "$STATE_DIR"
+
+file_fresh() {
+  local file="$1"
+  [[ -s "$file" ]] || return 1
+
+  local now mtime age
+  now="$(date +%s)"
+  mtime="$(stat -c %Y "$file" 2>/dev/null || echo 0)"
+  age=$((now - mtime))
+  (( age < CACHE_TTL_SECONDS ))
+}
+
+fetch_location() {
+  local tmp
+  tmp="$(mktemp)"
+
+  if curl -fsS --max-time 8 https://ipapi.co/json/ -o "$tmp"; then
+    if jq -e '.latitude and .longitude and .timezone' "$tmp" >/dev/null; then
+      mv "$tmp" "$CACHE_FILE"
+      return 0
+    fi
+  fi
+
+  rm -f "$tmp"
+  return 1
+}
+
+fetch_geoclue() {
+  local lat lon acc desc tmp
+  tmp="$(mktemp)"
+
+  if ! timeout 12s /usr/lib/geoclue-2.0/demos/where-am-i > "$tmp" 2>/dev/null; then
+    if ! grep -q '^Latitude:' "$tmp"; then
+      rm -f "$tmp"
+      return 1
+    fi
+  fi
+
+  lat="$(awk '/^Latitude:/{gsub(/[^0-9.-]/, "", $2); print $2; exit}' "$tmp")"
+  lon="$(awk '/^Longitude:/{gsub(/[^0-9.-]/, "", $2); print $2; exit}' "$tmp")"
+  acc="$(awk '/^Accuracy:/{print $2; exit}' "$tmp")"
+  desc="$(sed -n 's/^Description:[[:space:]]*//p' "$tmp" | head -1)"
+  rm -f "$tmp"
+
+  [[ -n "$lat" && -n "$lon" ]] || return 1
+
+  {
+    printf 'latitude=%s\n' "$lat"
+    printf 'longitude=%s\n' "$lon"
+    printf 'accuracy=%s\n' "${acc:-}"
+    printf 'description=%q\n' "${desc:-Geoclue}"
+  } > "$GEOCLUE_CACHE_FILE"
+}
+
+ensure_cache() {
+  if ! file_fresh "$GEOCLUE_CACHE_FILE"; then
+    fetch_geoclue || true
+  fi
+
+  if file_fresh "$CACHE_FILE"; then
+    return 0
+  fi
+
+  fetch_location || [[ -s "$CACHE_FILE" ]]
+}
+
+geoclue_field() {
+  local key="$1"
+  [[ -s "$GEOCLUE_CACHE_FILE" ]] || return 1
+  # shellcheck disable=SC1090
+  source "$GEOCLUE_CACHE_FILE"
+  case "$key" in
+    latitude) printf '%s\n' "${latitude:-}" ;;
+    longitude) printf '%s\n' "${longitude:-}" ;;
+    accuracy) printf '%s\n' "${accuracy:-}" ;;
+    description) printf '%s\n' "${description:-}" ;;
+    *) return 1 ;;
+  esac
+}
+
+field() {
+  jq -r "$1 // \"\"" "$CACHE_FILE"
+}
+
+status_cmd() {
+  ensure_cache || exit 1
+
+  local city region country label
+  city="$(field '.city')"
+  region="$(field '.region')"
+  country="$(field '.country_name')"
+
+  if [[ -n "$city" && -n "$region" ]]; then
+    label="$city, $region"
+  elif [[ -n "$city" ]]; then
+    label="$city"
+  else
+    label="$country"
+  fi
+
+  printf 'city=%s\n' "$city"
+  printf 'region=%s\n' "$region"
+  printf 'country=%s\n' "$country"
+  printf 'label=%s\n' "$label"
+  printf 'latitude=%s\n' "$(geoclue_field latitude || field '.latitude')"
+  printf 'longitude=%s\n' "$(geoclue_field longitude || field '.longitude')"
+  printf 'accuracy=%s\n' "$(geoclue_field accuracy || true)"
+  printf 'timezone=%s\n' "$(field '.timezone')"
+  printf 'source=%s\n' "$(geoclue_field description || echo 'ipapi.co')"
+}
+
+weather_cmd() {
+  ensure_cache || exit 1
+
+  local unit lat lon
+  unit="${1:-m}"
+  lat="$(geoclue_field latitude || field '.latitude')"
+  lon="$(geoclue_field longitude || field '.longitude')"
+
+  [[ -n "$lat" && -n "$lon" ]] || exit 1
+
+  curl -fsS --max-time 8 "https://wttr.in/${lat},${lon}?format=%c%t&${unit}"
+}
+
+timezone_cmd() {
+  ensure_cache || exit 1
+  field '.timezone'
+}
+
+set_timezone_cmd() {
+  local tz
+  tz="$(timezone_cmd)"
+  [[ -n "$tz" ]] || exit 1
+  timedatectl set-timezone "$tz"
+}
+
+case "${1:-status}" in
+  status)
+    status_cmd
+    ;;
+  weather)
+    weather_cmd "${2:-m}"
+    ;;
+  timezone)
+    timezone_cmd
+    ;;
+  set-timezone)
+    set_timezone_cmd
+    ;;
+  refresh)
+    rm -f "$CACHE_FILE"
+    rm -f "$GEOCLUE_CACHE_FILE"
+    status_cmd
+    ;;
+  *)
+    echo "Usage: location-info [status|weather [m|u]|timezone|set-timezone|refresh]" >&2
+    exit 2
+    ;;
+esac

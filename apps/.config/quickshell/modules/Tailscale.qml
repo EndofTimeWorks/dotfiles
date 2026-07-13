@@ -34,7 +34,7 @@ Item {
         id: toggleProc
         command: up
             ? ["tailscale", "down"]
-            : ["bash", "-lc", "tailscale up && /home/end/.local/bin/mullvad-tailscale-fix || true"]
+            : ["tailscale", "up"]
         onExited: pollProc.running = true
     }
 
@@ -75,7 +75,7 @@ Item {
     PopupWindow {
         id: popup
         visible: false
-        grabFocus: true
+        grabFocus: false
         anchor.window: barWindow
         anchor.rect.x: {
             if (!barWindow) return 0

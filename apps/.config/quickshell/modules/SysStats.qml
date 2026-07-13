@@ -8,8 +8,8 @@ Item {
 
     property int cpu: 0
     property int ram: 0
-    property int prevIdle: 0
-    property int prevTotal: 0
+    property real prevIdle: 0
+    property real prevTotal: 0
 
     Process {
         id: proc

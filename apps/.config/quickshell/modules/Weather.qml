@@ -12,7 +12,7 @@ Item {
 
     Process {
         id: proc
-        command: ["curl", "-sf", "wttr.in/Phoenix?format=%c%t&" + unit]
+        command: ["bash", "-lc", "~/.local/bin/location-info weather " + unit]
         stdout: StdioCollector {
             onStreamFinished: {
                 weatherText = this.text.trim().replace(/\s+/g, "").replace(/\+(\d)/g, "$1")

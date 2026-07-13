@@ -1,0 +1,13 @@
+[Unit]
+Description=Idle lock and suspend for niri session
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/swayidle -w timeout 900 '%h/.local/bin/idle-lock-suspend' before-sleep '%h/.local/bin/hyprlock-lock'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

@@ -11,7 +11,7 @@ wifi_soft_blocked() {
 }
 
 unblock_wifi() {
-  sudo -n /usr/bin/rfkill unblock wlan || /usr/bin/rfkill unblock wlan || true
+  sudo -n /usr/bin/rfkill unblock wlan
 }
 
 log_msg() {
@@ -20,16 +20,22 @@ log_msg() {
 
 daemon_mode() {
   if [[ ! -f "$PAUSE_FILE" ]] && wifi_soft_blocked; then
-    unblock_wifi
-    log_msg "startup soft block detected; unblocked wlan"
+    if unblock_wifi; then
+      log_msg "startup soft block detected; unblocked wlan"
+    else
+      log_msg "startup soft block detected, but unblock failed"
+    fi
   fi
 
   rfkill event | while read -r _line; do
     [[ -f "$PAUSE_FILE" ]] && continue
 
     if wifi_soft_blocked; then
-      unblock_wifi
-      log_msg "unexpected wifi soft block detected; unblocked wlan"
+      if unblock_wifi; then
+        log_msg "unexpected wifi soft block detected; unblocked wlan"
+      else
+        log_msg "unexpected wifi soft block detected, but unblock failed"
+      fi
     fi
   done
 }
@@ -41,7 +47,10 @@ pause_mode() {
 
 resume_mode() {
   rm -f "$PAUSE_FILE"
-  unblock_wifi
+  unblock_wifi || {
+    echo "rfkill-guard: failed to unblock wlan" >&2
+    return 1
+  }
   echo "rfkill-guard: resumed"
 }
 

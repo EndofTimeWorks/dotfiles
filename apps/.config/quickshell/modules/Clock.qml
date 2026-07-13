@@ -53,10 +53,12 @@ Item {
         }
         anchor.rect.y: barWindow ? barWindow.implicitHeight : 50
         implicitWidth: 280
-        implicitHeight: 330
+        implicitHeight: 370
         color: "transparent"
 
         property string tzLabel: ""
+        property string detectedTz: ""
+        property string detectedLocation: ""
         property string searchText: ""
         property var zones: [
             "America/Phoenix", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Anchorage",
@@ -72,14 +74,32 @@ Item {
 
         Process {
             id: tzProc
-            command: ["date", "+%Z"]
+            command: ["bash", "-lc", "printf '%s (%s)\\n' \"$(date +%Z)\" \"$(timedatectl show -p Timezone --value 2>/dev/null || true)\""]
             stdout: StdioCollector { onStreamFinished: panel.tzLabel = this.text.trim() }
+        }
+
+        Process {
+            id: locationProc
+            command: ["bash", "-lc", "~/.local/bin/location-info status"]
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    var lines = this.text.trim().split("\n")
+                    for (var i = 0; i < lines.length; i++) {
+                        var l = lines[i]
+                        if (l.startsWith("timezone=")) panel.detectedTz = l.slice(9)
+                        if (l.startsWith("label=")) panel.detectedLocation = l.slice(6)
+                    }
+                }
+            }
         }
 
         Process {
             id: setTzProc
             command: ["true"]
-            onExited: tzProc.running = true
+            onExited: {
+                tzProc.running = true
+                locationProc.running = true
+            }
         }
 
         Rectangle {
@@ -97,11 +117,51 @@ Item {
 
             Text { text: timeStr; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 18; font.bold: true }
             Text { text: Qt.formatDate(new Date(), "dddd, MMMM d"); color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 12 }
-            Text { text: panel.tzLabel; color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 11 }
+            Text { text: "System: " + panel.tzLabel; color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 11 }
+            Text {
+                text: panel.detectedTz !== ""
+                    ? "Detected: " + (panel.detectedLocation !== "" ? panel.detectedLocation + " • " : "") + panel.detectedTz
+                    : "Detected: unavailable"
+                color: "#4ec9b0"
+                font.family: "Maple Mono NF"
+                font.pixelSize: 11
+                elide: Text.ElideRight
+                width: parent.width
+            }
 
             Rectangle {
                 width: parent.width
-                height: 64
+                height: 24
+                radius: 6
+                color: detectedTzMa.containsMouse ? Qt.rgba(0.306, 0.788, 0.690, 0.16) : Qt.rgba(0.306, 0.788, 0.690, 0.08)
+
+                Text {
+                    anchors.centerIn: parent
+                    text: panel.detectedTz !== "" ? "Use detected timezone" : "Refresh detected location"
+                    color: "#cdd6f4"
+                    font.family: "Maple Mono NF"
+                    font.pixelSize: 11
+                }
+
+                MouseArea {
+                    id: detectedTzMa
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: {
+                        if (panel.detectedTz !== "") {
+                            setTzProc.command = ["pkexec", "timedatectl", "set-timezone", panel.detectedTz]
+                            setTzProc.running = true
+                        } else {
+                            locationProc.command = ["bash", "-lc", "~/.local/bin/location-info refresh"]
+                            locationProc.running = true
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 56
                 radius: 8
                 color: Qt.rgba(1, 1, 1, 0.04)
 
@@ -155,7 +215,7 @@ Item {
 
             Flickable {
                 width: parent.width
-                height: 74
+                height: 58
                 contentHeight: tzCol.implicitHeight
                 clip: true
 
@@ -188,7 +248,7 @@ Item {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 onClicked: {
-                                    setTzProc.command = ["timedatectl", "set-timezone", String(modelData)]
+                                    setTzProc.command = ["pkexec", "timedatectl", "set-timezone", String(modelData)]
                                     setTzProc.running = true
                                     panel.visible = false
                                 }
@@ -199,10 +259,14 @@ Item {
             }
         }
 
-        Component.onCompleted: tzProc.running = true
+        Component.onCompleted: {
+            tzProc.running = true
+            locationProc.running = true
+        }
         onVisibleChanged: {
             if (visible) {
                 tzProc.running = true
+                locationProc.running = true
                 Qt.callLater(function() {
                     searchInput.forceActiveFocus()
                     searchInput.cursorPosition = searchInput.text.length

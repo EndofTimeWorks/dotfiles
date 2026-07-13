@@ -15,6 +15,34 @@ Item {
     property int stableEstimateMinutes: -1
     property int stableEstimateCount: 0
     property int alertStage: 0
+    property string alertTitle: ""
+    property string alertBody: ""
+    property string alertColor: "#fac863"
+
+    function alertText() {
+        var left = displayTimeLeft()
+        if (left !== "")
+            return pct + "% remaining • " + left
+        if (timeLeft !== "")
+            return pct + "% remaining • " + timeLeft + " left"
+        return pct + "% remaining"
+    }
+
+    function showBatteryWarning(stage) {
+        if (stage === 2) {
+            alertTitle = "Battery critical"
+            alertBody = alertText() + ". Plug in now."
+            alertColor = "#ec5f89"
+        } else {
+            alertTitle = "Battery low"
+            alertBody = alertText()
+            alertColor = "#fac863"
+        }
+
+        warningPopup.visible = true
+        warningTimer.interval = stage === 2 ? 30000 : 18000
+        warningTimer.restart()
+    }
 
     function parseEstimateMinutes(text) {
         if (!text)
@@ -72,8 +100,9 @@ Item {
             return ""
 
         if (stableEstimateMinutes >= 60) {
-            var hours = Math.round(stableEstimateMinutes / 60)
-            return hours + "h left"
+            var hours = Math.floor(stableEstimateMinutes / 60)
+            var minutes = stableEstimateMinutes % 60
+            return hours + "h" + (minutes > 0 ? " " + minutes + "m" : "") + " left"
         }
 
         return stableEstimateMinutes + " min left"
@@ -82,12 +111,14 @@ Item {
     function maybeAlert() {
         if (charging) {
             alertStage = 0
+            warningPopup.visible = false
             return
         }
 
         if (pct <= 5) {
             if (alertStage < 2) {
                 criticalAlert.running = true
+                showBatteryWarning(2)
                 alertStage = 2
             }
             return
@@ -96,6 +127,7 @@ Item {
         if (pct <= 20) {
             if (alertStage < 1) {
                 lowAlert.running = true
+                showBatteryWarning(1)
                 alertStage = 1
             }
             return
@@ -125,12 +157,21 @@ Item {
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = this.text.split("\n")
+                var nextPct = pct
+                var nextCharging = false
+                var nextTimeLeft = ""
                 for (var i = 0; i < lines.length; i++) {
                     var t = lines[i].trim()
-                    if (t.startsWith("percentage:")) pct = parseInt(t.split(":")[1]) || 100
-                    if (t.startsWith("state:")) charging = t.indexOf("charging") !== -1 && t.indexOf("discharging") === -1
-                    if (t.startsWith("time to")) timeLeft = t.split(":").slice(1).join(":").trim()
+                    if (t.startsWith("percentage:")) {
+                        var parsedPct = parseInt(t.split(":")[1])
+                        if (!isNaN(parsedPct)) nextPct = parsedPct
+                    }
+                    if (t.startsWith("state:")) nextCharging = t.indexOf("charging") !== -1 && t.indexOf("discharging") === -1
+                    if (t.startsWith("time to")) nextTimeLeft = t.split(":").slice(1).join(":").trim()
                 }
+                pct = nextPct
+                charging = nextCharging
+                timeLeft = nextTimeLeft
                 updateStableEstimate(timeLeft)
                 maybeAlert()
             }
@@ -147,7 +188,7 @@ Item {
             "-u", "normal",
             "-a", "Battery",
             "Battery low",
-            pct + "% remaining" + (timeLeft ? " • " + timeLeft + " left" : "")
+            alertText()
         ]
     }
 
@@ -158,8 +199,16 @@ Item {
             "-u", "critical",
             "-a", "Battery",
             "Battery critical",
-            pct + "% remaining" + (timeLeft ? " • " + timeLeft + " left" : "") + ". Hibernate soon."
+            alertText() + ". Plug in now."
         ]
+    }
+
+    Timer {
+        id: warningTimer
+        interval: 18000
+        running: false
+        repeat: false
+        onTriggered: warningPopup.visible = false
     }
 
     Rectangle {
@@ -186,7 +235,7 @@ Item {
     PopupWindow {
         id: popup
         visible: false
-        grabFocus: true
+        grabFocus: false
         anchor.window: barWindow
         anchor.rect.x: {
             if (!barWindow) return 0
@@ -212,11 +261,82 @@ Item {
             Text { text: pct + "%"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 14 }
             Text {
                 text: charging
-                    ? (displayTimeLeft() ? displayTimeLeft().replace(" left", " until full") : "Charging")
+                    ? (timeLeft !== "" ? timeLeft + " until full" : "Charging")
                     : (displayTimeLeft() || "Discharging")
                 color: "#7f849c"
                 font.family: "Maple Mono NF"
                 font.pixelSize: 12
+            }
+        }
+    }
+
+    PopupWindow {
+        id: warningPopup
+        visible: false
+        grabFocus: false
+        anchor.window: barWindow
+        anchor.rect.x: barWindow ? Math.max(8, Math.floor((barWindow.width - 380) / 2)) : 0
+        anchor.rect.y: barWindow ? barWindow.implicitHeight + 8 : 58
+        implicitWidth: 380
+        implicitHeight: 112
+        color: "transparent"
+
+        Rectangle {
+            anchors.fill: parent
+            color: "#0f1120"
+            radius: 16
+            border.color: alertColor
+            border.width: 2
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: warningPopup.visible = false
+            }
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 14
+                spacing: 12
+
+                Text {
+                    text: pct <= 5 ? "󰂃" : "󰁺"
+                    color: alertColor
+                    font.family: "Maple Mono NF"
+                    font.pixelSize: 32
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    spacing: 4
+
+                    Text {
+                        text: alertTitle
+                        color: "#cdd6f4"
+                        font.family: "Maple Mono NF"
+                        font.pixelSize: 16
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+
+                    Text {
+                        text: alertBody
+                        color: "#a6accd"
+                        font.family: "Maple Mono NF"
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                    }
+
+                    Text {
+                        text: "click to dismiss"
+                        color: "#5f668a"
+                        font.family: "Maple Mono NF"
+                        font.pixelSize: 10
+                        Layout.fillWidth: true
+                    }
+                }
             }
         }
     }

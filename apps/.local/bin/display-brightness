@@ -62,6 +62,10 @@ status_cmd() {
   printf 'dim=%s\n' "$(get_dim)"
 }
 
+dim_status_cmd() {
+  printf 'dim=%s\n' "$(get_dim)"
+}
+
 down_cmd() {
   local brightness dim next
   brightness="$(get_brightness_pct)"
@@ -95,6 +99,9 @@ case "${1:-status}" in
   status)
     status_cmd
     ;;
+  dim-status)
+    dim_status_cmd
+    ;;
   up)
     up_cmd
     ;;
@@ -108,7 +115,7 @@ case "${1:-status}" in
     set_brightness_pct "${2:-1}"
     ;;
   *)
-    echo "Usage: display-brightness [status|up|down|set-dim <0..1>|set-brightness <1..100>]" >&2
+    echo "Usage: display-brightness [status|dim-status|up|down|set-dim <0..1>|set-brightness <1..100>]" >&2
     exit 2
     ;;
 esac

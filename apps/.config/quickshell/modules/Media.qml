@@ -12,7 +12,7 @@ Item {
 
     Process {
         id: proc
-        command: ["playerctl", "metadata", "--format", "{{artist}} — {{title}}"]
+        command: ["playerctl", "-p", "playerctld", "metadata", "--format", "{{artist}} — {{title}}"]
         stdout: StdioCollector {
             onStreamFinished: mediaText = this.text.trim()
         }
@@ -62,6 +62,6 @@ Item {
         }
     }
 
-    Process { id: playPauseProc; command: ["playerctl", "play-pause"] }
-    Process { id: skipProc; command: ["playerctl", "next"] }
+    Process { id: playPauseProc; command: ["playerctl", "-p", "playerctld", "play-pause"] }
+    Process { id: skipProc; command: ["playerctl", "-p", "playerctld", "next"] }
 }

@@ -52,6 +52,12 @@ Scope {
         return ""
     }
 
+    function isDefaultAction(action) {
+        if (!action) return false
+        var id = normalized(action.identifier)
+        return id === "" || id === "default"
+    }
+
     function appIdCandidates(appName, desktopEntry) {
         var key = normalized(appName)
         var ids = []
@@ -106,18 +112,9 @@ Scope {
         if (!notif) return
 
         var acts = notif.actions || []
-        if (acts.length === 1) {
-            try {
-                acts[0].invoke()
-                focusKnownWindow(notif.appName, notif.desktopEntry, false)
-                return
-            } catch (e) {}
-        }
-
         for (var i = 0; i < acts.length; i++) {
             var a = acts[i]
-            if (!a) continue
-            if (!a.identifier || String(a.identifier).toLowerCase() === "default") {
+            if (isDefaultAction(a)) {
                 var invoked = false
                 try {
                     a.invoke()

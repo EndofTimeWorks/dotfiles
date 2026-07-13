@@ -262,16 +262,19 @@ layout {
 // See the binds section below for more spawn examples.
 
 spawn-at-startup "bash" "-lc" "~/.local/bin/quickshell-session"
+spawn-at-startup "playerctld" "daemon"
 spawn-at-startup "vicinae" "server"
-// Disabled for now: this was repeatedly triggering hyprlock while the session was active.
-// spawn-at-startup "swayidle" "-w" "timeout" "600" "systemctl suspend" "before-sleep" "hyprlock"
+// Keep idle handling in a user service so it gets the session environment and
+// can restart cleanly. It locks before sleep so PAM/fingerprint auth is
+// required on resume.
+spawn-at-startup "systemctl" "--user" "start" "swayidle.service"
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 spawn-at-startup "wallpaper-init"
 spawn-at-startup "signal-desktop"
 spawn-at-startup "discord-canary"
 spawn-at-startup "zen-browser"
 spawn-at-startup "qpwgraph" "--minimized"
-spawn-at-startup "bash" "-lc" "wezterm & sleep 1; helium-browser & sleep 1; obsidian & sleep 1; thunderbird"
+spawn-at-startup "bash" "-lc" "wezterm start --always-new-process & sleep 1; helium-browser & sleep 1; obsidian & sleep 1; thunderbird"
 
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.
@@ -366,16 +369,37 @@ window-rule {
 
 // Workspace 1: productivity / personal
 window-rule {
+    match app-id="helium"
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    match app-id="obsidian"
+    match app-id="thunderbird"
+    match app-id="org.mozilla.Thunderbird"
+    open-on-workspace "main"
+}
+
+window-rule {
     match at-startup=true app-id="helium"
     match at-startup=true app-id=r#"^org\.wezfurlong\.wezterm$"#
     match at-startup=true app-id="obsidian"
     match at-startup=true app-id="thunderbird"
     match at-startup=true app-id="org.mozilla.Thunderbird"
-    open-on-workspace "main"
     open-maximized true
 }
 
 // Workspace 2: comms / social
+window-rule {
+    match app-id="steam"
+    match app-id=r#"^signal$"#
+    match app-id=r#"^com\.discordapp\.Discord$"#
+    match app-id="discord"
+    match app-id="discord-canary"
+    match app-id="zen"
+    match app-id="zen-browser"
+    match app-id="Slack"
+    match app-id="slack"
+    open-on-workspace "comms"
+}
+
 window-rule {
     match at-startup=true app-id="steam"
     match at-startup=true app-id=r#"^signal$"#
@@ -386,7 +410,6 @@ window-rule {
     match at-startup=true app-id="zen-browser"
     match at-startup=true app-id="Slack"
     match at-startup=true app-id="slack"
-    open-on-workspace "comms"
     open-maximized true
 }
 
@@ -412,10 +435,10 @@ binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
     // Suggested binds for running programs: terminal, app launcher, screen locker.
-    Mod+T hotkey-overlay-title="Open a Terminal: fish" { spawn "wezterm"; }
-    Mod+B hotkey-overlay-title="Open Browser: Helium" { spawn "helium"; }
+    Mod+T hotkey-overlay-title="Open a Terminal: fish" { spawn "wezterm" "start" "--always-new-process"; }
+    Mod+B hotkey-overlay-title="Open Browser: Helium" { spawn "helium-browser"; }
     Mod+D hotkey-overlay-title="Run an Application: vicinae" { spawn "vicinae" "toggle"; }
-    Super+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
+    Super+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "bash" "-lc" "exec ~/.local/bin/hyprlock-lock"; }
 
     // You can also use a shell. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument in the end.
@@ -427,14 +450,14 @@ binds {
     XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1-"; }
     XF86AudioMute        allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
     XF86AudioMicMute     allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle"; }
-    XF86AudioPlay allow-when-locked=true { spawn "playerctl" "play-pause"; }
-    XF86AudioPause allow-when-locked=true { spawn "playerctl" "play-pause"; }
-    XF86AudioNext allow-when-locked=true { spawn "playerctl" "next"; }
-    XF86AudioPrev allow-when-locked=true { spawn "playerctl" "previous"; }
-    XF86WLAN allow-when-locked=true { spawn "/home/end/.local/bin/rfkill-airplane"; }
-    XF86RFKill allow-when-locked=true { spawn "/home/end/.local/bin/rfkill-airplane"; }
-    XF86MonBrightnessUp allow-when-locked=true { spawn "/home/end/.local/bin/display-brightness" "up"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn "/home/end/.local/bin/display-brightness" "down"; }
+    XF86AudioPlay allow-when-locked=true { spawn "playerctl" "-p" "playerctld" "play-pause"; }
+    XF86AudioPause allow-when-locked=true { spawn "playerctl" "-p" "playerctld" "play-pause"; }
+    XF86AudioNext allow-when-locked=true { spawn "playerctl" "-p" "playerctld" "next"; }
+    XF86AudioPrev allow-when-locked=true { spawn "playerctl" "-p" "playerctld" "previous"; }
+    XF86WLAN allow-when-locked=true { spawn "bash" "-lc" "exec ~/.local/bin/rfkill-airplane"; }
+    XF86RFKill allow-when-locked=true { spawn "bash" "-lc" "exec ~/.local/bin/rfkill-airplane"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn "bash" "-lc" "exec ~/.local/bin/display-brightness up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "bash" "-lc" "exec ~/.local/bin/display-brightness down"; }
 
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,

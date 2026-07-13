@@ -8,7 +8,7 @@ Scope {
 
     Process {
         id: dimProc
-        command: ["/home/end/.local/bin/display-brightness", "status"]
+        command: ["bash", "-lc", "~/.local/bin/display-brightness dim-status"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = this.text.trim().split("\n")

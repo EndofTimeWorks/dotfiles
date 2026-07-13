@@ -4,7 +4,7 @@ After=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=/home/end/.local/bin/rfkill-guard daemon
+ExecStart=%h/.local/bin/rfkill-guard daemon
 Restart=always
 RestartSec=2
 

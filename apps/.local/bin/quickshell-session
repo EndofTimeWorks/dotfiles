@@ -7,4 +7,4 @@ export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-kde}"
 export QT_STYLE_OVERRIDE="${QT_STYLE_OVERRIDE:-Breeze}"
 unset KVANTUM_THEME
 
-exec quickshell --no-duplicate -p "${HOME}/.config/quickshell"
+exec quickshell --no-duplicate --daemonize -p "${HOME}/.config/quickshell"

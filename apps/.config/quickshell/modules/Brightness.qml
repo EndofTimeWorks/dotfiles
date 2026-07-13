@@ -15,7 +15,7 @@ Item {
 
     Process {
         id: proc
-        command: ["/home/end/.local/bin/display-brightness", "status"]
+        command: ["bash", "-lc", "~/.local/bin/display-brightness status"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = this.text.trim().split("\n")
@@ -37,12 +37,12 @@ Item {
 
     Process {
         id: setProc
-        command: ["/home/end/.local/bin/display-brightness", "set-brightness", brightness + ""]
+        command: ["bash", "-lc", "~/.local/bin/display-brightness set-brightness " + brightness]
     }
 
     Process {
         id: setDimProc
-        command: ["/home/end/.local/bin/display-brightness", "set-dim", dim.toFixed(2)]
+        command: ["bash", "-lc", "~/.local/bin/display-brightness set-dim " + dim.toFixed(2)]
     }
 
     Rectangle {
@@ -69,7 +69,7 @@ Item {
     PopupWindow {
         id: popup
         visible: false
-        grabFocus: true
+        grabFocus: false
         anchor.window: barWindow
         anchor.rect.x: {
             if (!barWindow) return 0

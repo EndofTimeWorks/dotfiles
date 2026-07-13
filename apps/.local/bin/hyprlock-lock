@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if pgrep -xu "${USER}" hyprlock >/dev/null; then
+  exit 0
+fi
+
+hyprlock --grace 0 --immediate-render --config "${HOME}/.config/hypr/hyprlock.conf" >/tmp/hyprlock.log 2>&1 &
+
+for _ in {1..20}; do
+  if pgrep -xu "${USER}" hyprlock >/dev/null; then
+    exit 0
+  fi
+
+  sleep 0.1
+done
+
+echo "hyprlock did not start" >&2
+exit 1
