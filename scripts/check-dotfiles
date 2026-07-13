@@ -22,6 +22,38 @@ check() {
 check "Git whitespace" git diff --check
 check "Niri configuration" niri validate -c apps/.config/niri/config.kdl
 
+if command -v qmllint >/dev/null 2>&1; then
+  while IFS= read -r qml; do
+    check "QML: $qml" qmllint "$qml"
+  done < <(find apps/.config/quickshell -type f -name '*.qml' -print | sort)
+fi
+
+if command -v fish >/dev/null 2>&1; then
+  check "Fish configuration" fish -n \
+    fish/.config/fish/config.fish \
+    fish/.config/fish/conf.d/colors.fish
+fi
+
+if command -v wezterm >/dev/null 2>&1; then
+  check "WezTerm configuration" bash -c \
+    'wezterm --config-file apps/.config/wezterm/wezterm.lua show-keys --lua >/dev/null'
+fi
+
+if command -v jq >/dev/null 2>&1; then
+  check "JSON configuration" jq empty \
+    apps/.config/ags/package.json \
+    apps/.config/vicinae/settings.json \
+    apps/.config/zed/keymap.json \
+    apps/.config/zed/themes/zed.json
+fi
+
+check "stale checkout paths" bash -c \
+  '! git grep -nE "/home/end/(Github|projects)/dotfiles" -- ":(exclude)README.md"'
+
+if command -v stow >/dev/null 2>&1; then
+  check "Stow simulation" stow --no --verbose=1 apps fish
+fi
+
 for script in apps/.local/bin/* scripts/*; do
   [[ -f "$script" ]] || continue
   [[ "$(head -n 1 "$script")" == *bash* ]] || continue
@@ -41,7 +73,7 @@ fi
 if command -v systemd-analyze >/dev/null 2>&1; then
   while IFS= read -r unit; do
     check "systemd unit: $unit" systemd-analyze verify "$unit"
-  done < <(find apps/.config/systemd -type f \( -name '*.service' -o -name '*.timer' \) -print | sort)
+  done < <(find apps/.config/systemd system/systemd -type f \( -name '*.service' -o -name '*.timer' \) -print | sort)
 fi
 
 if nix store ping --store daemon >/dev/null 2>&1; then
