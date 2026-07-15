@@ -4,32 +4,22 @@ import Quickshell.Io
 import QtQuick
 
 Scope {
+    id: root
     property real dimAmount: 0.0
+    readonly property string stateHome: Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")
 
-    Process {
-        id: dimProc
-        command: ["bash", "-lc", "~/.local/bin/display-brightness dim-status"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var lines = this.text.trim().split("\n")
-                for (var i = 0; i < lines.length; i++) {
-                    var l = lines[i]
-                    if (l.startsWith("dim=")) {
-                        dimAmount = parseFloat(l.slice(4)) || 0
-                    }
-                }
-            }
-        }
+    function loadDim(text) {
+        var value = parseFloat(String(text || "").trim())
+        dimAmount = isNaN(value) ? 0 : Math.max(0, Math.min(1, value))
     }
 
-    Timer {
-        interval: 250
-        running: true
-        repeat: true
-        onTriggered: dimProc.running = true
+    FileView {
+        id: dimFile
+        path: root.stateHome + "/display/dim"
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: root.loadDim(text())
     }
-
-    Component.onCompleted: dimProc.running = true
 
     Variants {
         model: Quickshell.screens

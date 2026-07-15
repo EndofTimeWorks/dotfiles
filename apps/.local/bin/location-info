@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/location"
 CACHE_FILE="$STATE_DIR/ip-location.json"
@@ -7,6 +8,8 @@ GEOCLUE_CACHE_FILE="$STATE_DIR/geoclue-location.env"
 CACHE_TTL_SECONDS="${LOCATION_CACHE_TTL_SECONDS:-21600}"
 
 mkdir -p "$STATE_DIR"
+chmod 700 "$STATE_DIR"
+chmod 600 "$CACHE_FILE" "$GEOCLUE_CACHE_FILE" 2>/dev/null || true
 
 file_fresh() {
   local file="$1"
@@ -123,6 +126,13 @@ weather_cmd() {
 
   local unit lat lon
   unit="${1:-m}"
+  case "$unit" in
+    m|u) ;;
+    *)
+      echo "location-info: weather unit must be 'm' or 'u'" >&2
+      return 2
+      ;;
+  esac
   lat="$(geoclue_field latitude || field '.latitude')"
   lon="$(geoclue_field longitude || field '.longitude')"
 

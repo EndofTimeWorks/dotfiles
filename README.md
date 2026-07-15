@@ -61,16 +61,27 @@ This repo assumes these commands exist on the machine:
 
 ```text
 brightnessctl
+discord
+helium-browser
 hyprlock
 niri
 notify-send
+obsidian
 playerctl
+playerctld
+qpwgraph
 quickshell
 rfkill
+signal-desktop
 stow
+swayidle
+thunderbird
 upower
+vicinae
+wallpaper-init
 wezterm
-zed
+zeditor
+zen-browser
 ```
 
 Useful optional tools:
@@ -81,7 +92,6 @@ jq
 mullvad
 nft
 tailscale
-vicinae
 waydroid
 ```
 
@@ -103,7 +113,7 @@ Current startup behavior:
 
 - starts Quickshell through `~/.local/bin/quickshell-session`
 - starts Vicinae server
-- starts Signal, Discord Canary, Zen, qpwgraph, WezTerm, Helium, Obsidian, and Thunderbird
+- starts Signal, Discord, Zen, qpwgraph, WezTerm, Helium, Obsidian, and Thunderbird
 - routes startup apps to the intended workspaces
 - maximizes startup app windows
 

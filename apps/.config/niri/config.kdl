@@ -271,7 +271,7 @@ spawn-at-startup "systemctl" "--user" "start" "swayidle.service"
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 spawn-at-startup "wallpaper-init"
 spawn-at-startup "signal-desktop"
-spawn-at-startup "discord-canary"
+spawn-at-startup "discord"
 spawn-at-startup "zen-browser"
 spawn-at-startup "qpwgraph" "--minimized"
 spawn-at-startup "bash" "-lc" "wezterm start --always-new-process & sleep 1; helium-browser & sleep 1; obsidian & sleep 1; thunderbird"
@@ -344,7 +344,7 @@ window-rule {
     // - host Firefox (app-id is "firefox")
     // - Flatpak Firefox (app-id is "org.mozilla.firefox")
     match app-id=r#"firefox$"# title="^Picture-in-Picture$"
-    open-floating false
+    open-floating true
 }
 
 // Example: block out two password managers from screen capture.
@@ -354,7 +354,6 @@ window-rule {
     match app-id=r#"^org\.gnome\.World\.Secrets$"#
     match app-id=r#"^signal$"#
     match app-id=r#"^com\.discordapp\.Discord$"#
-    match app-id="discord-canary"
    /-  match app-id=r#"^org\.wezfurlong\.wezterm$"#
     match app-id=r#"^Bitwarden$"#
     block-out-from "screen-capture"
@@ -392,7 +391,6 @@ window-rule {
     match app-id=r#"^signal$"#
     match app-id=r#"^com\.discordapp\.Discord$"#
     match app-id="discord"
-    match app-id="discord-canary"
     match app-id="zen"
     match app-id="zen-browser"
     match app-id="Slack"
@@ -405,7 +403,6 @@ window-rule {
     match at-startup=true app-id=r#"^signal$"#
     match at-startup=true app-id=r#"^com\.discordapp\.Discord$"#
     match at-startup=true app-id="discord"
-    match at-startup=true app-id="discord-canary"
     match at-startup=true app-id="zen"
     match at-startup=true app-id="zen-browser"
     match at-startup=true app-id="Slack"

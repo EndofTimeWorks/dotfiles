@@ -50,6 +50,18 @@ fi
 check "stale checkout paths" bash -c \
   '! git grep -nE "/home/end/(Github|projects)/dotfiles" -- ":(exclude)README.md"'
 
+required_commands=(
+  brightnessctl discord helium-browser hyprlock niri notify-send obsidian
+  playerctl playerctld qpwgraph quickshell rfkill signal-desktop swayidle
+  thunderbird upower vicinae wallpaper-init wezterm zeditor zen-browser
+)
+for command_name in "${required_commands[@]}"; do
+  check "runtime command: $command_name" command -v "$command_name"
+done
+
+check "Plasma files are non-executable" bash -c \
+  '! find plasma -type f -perm /111 -print -quit | grep -q .'
+
 if command -v stow >/dev/null 2>&1; then
   check "Stow simulation" stow --no --verbose=1 apps fish
 fi

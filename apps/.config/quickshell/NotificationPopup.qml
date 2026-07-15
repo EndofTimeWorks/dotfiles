@@ -41,7 +41,7 @@ Scope {
         var key = normalized(appName)
         if (key === "discord") return "discord"
         if (key === "vesktop") return "vesktop"
-        if (key === "signal") return "signal-desktop"
+        if (key === "signal") return "signal"
         if (key === "slack") return "slack"
         if (key === "spotify") return "spotify"
         if (key === "thunderbird") return "org.mozilla.Thunderbird"

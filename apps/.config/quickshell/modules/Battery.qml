@@ -20,8 +20,6 @@ Item {
         var left = displayTimeLeft()
         if (left !== "")
             return pct + "% remaining • " + left
-        if (timeLeft !== "")
-            return pct + "% remaining • " + timeLeft + " left"
         return pct + "% remaining"
     }
 
@@ -126,7 +124,7 @@ Item {
 
     function batColor() {
         if (charging) return "#4ec9b0"
-        if (pct < 20) return "#f97b58"
+        if (pct <= 20) return "#f97b58"
         return "#cdd6f4"
     }
 

@@ -9,6 +9,9 @@ MAX_DIM="${MAX_DIM:-0.85}"
 MIN_BRIGHTNESS="${MIN_BRIGHTNESS:-1}"
 
 mkdir -p "$STATE_DIR"
+if [[ ! -e "$DIM_FILE" ]]; then
+  printf '0.00\n' > "$DIM_FILE"
+fi
 
 clamp_dim() {
   awk -v v="${1:-0}" -v max="$MAX_DIM" 'BEGIN {

@@ -7,4 +7,7 @@ export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-kde}"
 export QT_STYLE_OVERRIDE="${QT_STYLE_OVERRIDE:-Breeze}"
 unset KVANTUM_THEME
 
+# Ensure the dimmer's watched state file exists before QML loads it.
+"${HOME}/.local/bin/display-brightness" dim-status >/dev/null
+
 exec quickshell --no-duplicate --daemonize -p "${HOME}/.config/quickshell"

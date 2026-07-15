@@ -4,6 +4,7 @@ apps/.config/JetBrains/**/*.db
 apps/.config/JetBrains/**/*.db-shm
 apps/.config/JetBrains/**/*.db-wal
 *.db
+commafiles/
 *_RAW.md
 .claude/
 .claude.json
