@@ -1,6 +1,7 @@
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 
 Item {
     implicitWidth: row.implicitWidth + 10
@@ -8,7 +9,7 @@ Item {
 
     property string netIcon: "󰤭"
     property string netLabel: "offline"
-    property string netColor: "#7f849c"
+    property string netColor: Theme.textMuted
     property bool showIp: false
 
     Process {
@@ -26,7 +27,7 @@ Item {
                 if (out === "rfkill") {
                     netIcon = "󰖪"
                     netLabel = "rfkill"
-                    netColor = "#f97b58"
+                    netColor = Theme.warning
                     return
                 }
                 var parts = out.split("|")
@@ -37,18 +38,18 @@ Item {
                 if (eth) {
                     netIcon = "󰈀"
                     netLabel = showIp ? (ip || "no ip") : "wired"
-                    netColor = "#4ec9b0"
+                    netColor = Theme.accent
                 } else if (wifi) {
                     var wp = wifi.split(":")
                     var ssid = wp[1] || "connected"
                     var sig = parseInt(wp[2]) || 0
                     netIcon = sig > 75 ? "󰤨" : sig > 50 ? "󰤥" : sig > 25 ? "󰤢" : "󰤟"
                     netLabel = showIp ? (ip || "no ip") : ssid
-                    netColor = "#4ec9b0"
+                    netColor = Theme.accent
                 } else {
                     netIcon = "󰤭"
                     netLabel = "offline"
-                    netColor = "#7f849c"
+                    netColor = Theme.textMuted
                 }
             }
         }
@@ -59,7 +60,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ma.containsMouse ? "#141628" : "transparent"
+        color: ma.containsMouse ? Theme.surfaceHover : "transparent"
         radius: 8
         MouseArea {
             id: ma
@@ -74,8 +75,8 @@ Item {
             id: row
             anchors.centerIn: parent
             spacing: 4
-            Text { text: netIcon; color: netColor; font.family: "Maple Mono NF"; font.pixelSize: 14 }
-            Text { text: netLabel; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
+            Text { text: netIcon; color: netColor; font.family: Theme.fontFamily; font.pixelSize: 14 }
+            Text { text: netLabel; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 }

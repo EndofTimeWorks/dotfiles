@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Services.SystemTray
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 
 Item {
     implicitWidth: row.implicitWidth
@@ -23,7 +24,7 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: ma.containsMouse ? "#141628" : "transparent"
+                    color: ma.containsMouse ? Theme.surfaceHover : "transparent"
                     radius: 6
 
                     Image {
@@ -39,8 +40,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: (modelData.title ?? "?").charAt(0).toUpperCase()
-                        color: "#7f849c"
-                        font.family: "Maple Mono NF"
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
                         font.pixelSize: 11
                         visible: icon.status !== Image.Ready
                     }

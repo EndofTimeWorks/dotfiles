@@ -3,6 +3,7 @@ import Quickshell.Wayland
 import QtQuick
 import QtQuick.Layouts
 import "modules"
+import "Theme.js" as Theme
 
 Scope {
     property int notifUnread: 0
@@ -14,6 +15,8 @@ Scope {
     signal notifCleared()
     signal notifHistoryCleared()
     signal dimChanged(real val)
+
+    NiriState { id: niriState }
 
     Variants {
         model: Quickshell.screens
@@ -37,7 +40,7 @@ Scope {
                         anchors.topMargin: 6
                         width: parent.width - 16
                         height: 40
-                        color: "#0f1120"
+                        color: Theme.surface
                         radius: 12
                         border.color: Qt.rgba(0.306, 0.788, 0.690, 0.15)
                         border.width: 1
@@ -58,8 +61,8 @@ Scope {
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
                                     spacing: 4
-                                    Workspaces {}
-                                    WindowTitle {}
+                                    Workspaces { state: niriState }
+                                    WindowTitle { state: niriState }
                                 }
                             }
 

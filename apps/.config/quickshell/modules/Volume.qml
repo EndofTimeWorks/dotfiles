@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 import QtQuick.Controls
 
 Item {
@@ -28,7 +29,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ma.containsMouse ? "#141628" : "transparent"
+        color: ma.containsMouse ? Theme.surfaceHover : "transparent"
         radius: 8
 
         MouseArea {
@@ -49,8 +50,8 @@ Item {
             id: row
             anchors.centerIn: parent
             spacing: 4
-            Text { text: volIcon(); color: muted ? "#7f849c" : "#4ec9b0"; font.family: "Maple Mono NF"; font.pixelSize: 14 }
-            Text { text: vol + "%"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
+            Text { text: volIcon(); color: muted ? Theme.textMuted : Theme.accent; font.family: Theme.fontFamily; font.pixelSize: 14 }
+            Text { text: vol + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 
@@ -71,7 +72,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: "#0f1120"
+            color: Theme.surface
             radius: 10
             border.color: Qt.rgba(0.306, 0.788, 0.690, 0.15)
             border.width: 1
@@ -84,9 +85,9 @@ Item {
             Row {
                 width: parent.width
                 spacing: 8
-                Text { text: "󰕾"; color: "#4ec9b0"; font.family: "Maple Mono NF"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-                Text { text: "Speaker"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
-                Text { text: vol + "%"; color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "󰕾"; color: Theme.accent; font.family: Theme.fontFamily; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "Speaker"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: vol + "%"; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
             }
 
             Slider {
@@ -102,9 +103,9 @@ Item {
                 spacing: 8
                 property int micVol: source && source.audio ? Math.round(source.audio.volume * 100) : 0
                 property bool micMuted: source && source.audio ? source.audio.muted : false
-                Text { text: parent.micMuted ? "󰍭" : "󰍬"; color: parent.micMuted ? "#7f849c" : "#c792ea"; font.family: "Maple Mono NF"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-                Text { text: "Mic"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
-                Text { text: parent.micVol + "%"; color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: parent.micMuted ? "󰍭" : "󰍬"; color: parent.micMuted ? Theme.textMuted : Theme.secondary; font.family: Theme.fontFamily; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "Mic"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: parent.micVol + "%"; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
             }
 
             Slider {

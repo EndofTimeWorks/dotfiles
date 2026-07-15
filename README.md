@@ -158,6 +158,12 @@ QT_STYLE_OVERRIDE=Breeze
 
 That keeps native tray menus dark under Niri.
 
+Shell architecture:
+
+- `Theme.js` is the single source for Quickshell colors and typography
+- `NiriState.qml` consumes one persistent Niri event stream for workspace and focused-window state
+- battery discovery uses UPower device enumeration instead of a fixed `BAT0` or `BAT1` path
+
 Notification behavior:
 
 - left-click bell: open history

@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 
 Item {
     implicitWidth: row.implicitWidth + 10
@@ -70,7 +71,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ma.containsMouse ? "#141628" : "transparent"
+        color: ma.containsMouse ? Theme.surfaceHover : "transparent"
         radius: 8
 
         MouseArea {
@@ -98,7 +99,7 @@ Item {
                 opacity: connected ? 1.0 : 0.55
                 smooth: true
             }
-            Text { text: connected ? "on" : "off"; color: connected ? "#4ec9b0" : "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
+            Text { text: connected ? "on" : "off"; color: connected ? Theme.accent : Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 
@@ -119,7 +120,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: "#0f1120"
+            color: Theme.surface
             radius: 10
             border.color: Qt.rgba(0.306, 0.788, 0.690, 0.15)
             border.width: 1
@@ -129,9 +130,9 @@ Item {
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: 12 }
             spacing: 8
 
-            Text { text: connected ? "Connected" : "Disconnected"; color: connected ? "#4ec9b0" : "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 12 }
-            Text { text: location || "—"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 11 }
-            Text { text: ip || "—"; color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 11 }
+            Text { text: connected ? "Connected" : "Disconnected"; color: connected ? Theme.accent : Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 12 }
+            Text { text: location || "—"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 11 }
+            Text { text: ip || "—"; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 11 }
 
             Repeater {
                 model: favorites
@@ -145,8 +146,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: modelData.label
-                        color: "#cdd6f4"
-                        font.family: "Maple Mono NF"
+                        color: Theme.text
+                        font.family: Theme.fontFamily
                         font.pixelSize: 11
                     }
 

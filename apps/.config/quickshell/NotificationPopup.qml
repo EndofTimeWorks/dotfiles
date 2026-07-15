@@ -4,6 +4,7 @@ import Quickshell.Io
 import Quickshell.Services.Notifications
 import QtQuick
 import QtQuick.Layouts
+import "Theme.js" as Theme
 
 Scope {
     id: root
@@ -306,7 +307,7 @@ Scope {
                     required property var model
                     width: 344
                     height: toastContent.implicitHeight + 20
-                    color: "#0f1120"
+                    color: Theme.surface
                     radius: 14
                     border.color: Qt.rgba(0.306, 0.788, 0.690, 0.15)
                     border.width: 1
@@ -335,15 +336,15 @@ Scope {
 
                         Text {
                             text: model.app
-                            color: "#c792ea"
-                            font.family: "Maple Mono NF"
+                            color: Theme.secondary
+                            font.family: Theme.fontFamily
                             font.pixelSize: 11
                             font.bold: true
                         }
                         Text {
                             text: model.summary
-                            color: "#cdd6f4"
-                            font.family: "Maple Mono NF"
+                            color: Theme.text
+                            font.family: Theme.fontFamily
                             font.pixelSize: 13
                             font.bold: true
                             width: parent.width
@@ -352,8 +353,8 @@ Scope {
                         }
                         Text {
                             text: model.body
-                            color: "#7f849c"
-                            font.family: "Maple Mono NF"
+                            color: Theme.textMuted
+                            font.family: Theme.fontFamily
                             font.pixelSize: 12
                             width: parent.width
                             wrapMode: Text.WordWrap

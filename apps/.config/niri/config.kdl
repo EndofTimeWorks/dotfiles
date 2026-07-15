@@ -274,7 +274,10 @@ spawn-at-startup "signal-desktop"
 spawn-at-startup "discord"
 spawn-at-startup "zen-browser"
 spawn-at-startup "qpwgraph" "--minimized"
-spawn-at-startup "bash" "-lc" "wezterm start --always-new-process & sleep 1; helium-browser & sleep 1; obsidian & sleep 1; thunderbird"
+spawn-at-startup "wezterm" "start" "--always-new-process"
+spawn-at-startup "helium-browser"
+spawn-at-startup "obsidian"
+spawn-at-startup "thunderbird"
 
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.

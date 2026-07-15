@@ -1,6 +1,7 @@
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 
 Item {
     implicitWidth: row.implicitWidth + 10
@@ -48,10 +49,10 @@ Item {
             id: row
             anchors.centerIn: parent
             spacing: 6
-            Text { text: "󰻠"; color: "#c792ea"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
-            Text { text: cpu + "%"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
-            Text { text: "󰍛"; color: "#c792ea"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
-            Text { text: ram + "%"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
+            Text { text: "󰻠"; color: Theme.secondary; font.family: Theme.fontFamily; font.pixelSize: 13 }
+            Text { text: cpu + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13 }
+            Text { text: "󰍛"; color: Theme.secondary; font.family: Theme.fontFamily; font.pixelSize: 13 }
+            Text { text: ram + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 }

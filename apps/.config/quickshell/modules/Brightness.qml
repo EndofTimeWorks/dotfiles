@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 import QtQuick.Controls
 
 Item {
@@ -74,7 +75,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ma.containsMouse ? "#141628" : "transparent"
+        color: ma.containsMouse ? Theme.surfaceHover : "transparent"
         radius: 8
 
         MouseArea {
@@ -88,8 +89,8 @@ Item {
             id: row
             anchors.centerIn: parent
             spacing: 4
-            Text { text: "󰃟"; color: "#fac863"; font.family: "Maple Mono NF"; font.pixelSize: 14 }
-            Text { text: brightness + "%"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
+            Text { text: "󰃟"; color: Theme.yellow; font.family: Theme.fontFamily; font.pixelSize: 14 }
+            Text { text: brightness + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 
@@ -110,7 +111,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: "#0f1120"
+            color: Theme.surface
             radius: 10
             border.color: Qt.rgba(0.306, 0.788, 0.690, 0.15)
             border.width: 1
@@ -122,8 +123,8 @@ Item {
 
             Row {
                 spacing: 6
-                Text { text: "󰃟"; color: "#fac863"; font.family: "Maple Mono NF"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
-                Text { text: "Backlight " + brightness + "%"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "󰃟"; color: Theme.yellow; font.family: Theme.fontFamily; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "Backlight " + brightness + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
             }
 
             Slider {
@@ -140,8 +141,8 @@ Item {
 
             Row {
                 spacing: 6
-                Text { text: "󰌁"; color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
-                Text { text: "Dim " + Math.round(dim * 100) + "%"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "󰌁"; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "Dim " + Math.round(dim * 100) + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
             }
 
             Slider {

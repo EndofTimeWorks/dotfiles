@@ -1,6 +1,7 @@
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 
 Item {
     implicitWidth: visible ? row.implicitWidth + 10 : 0
@@ -25,7 +26,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ma.containsMouse ? "#141628" : "transparent"
+        color: ma.containsMouse ? Theme.surfaceHover : "transparent"
         radius: 8
         MouseArea {
             id: ma
@@ -40,7 +41,7 @@ Item {
             id: row
             anchors.centerIn: parent
             spacing: 4
-            Text { text: weatherText; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
+            Text { text: weatherText; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 }

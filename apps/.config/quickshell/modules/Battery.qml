@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 
 Item {
     implicitWidth: row.implicitWidth + 10
@@ -15,6 +16,7 @@ Item {
     property int stableEstimateMinutes: -1
     property int stableEstimateCount: 0
     property int alertStage: 0
+    property string devicePath: ""
 
     function alertText() {
         var left = displayTimeLeft()
@@ -123,14 +125,48 @@ Item {
     }
 
     function batColor() {
-        if (charging) return "#4ec9b0"
-        if (pct <= 20) return "#f97b58"
-        return "#cdd6f4"
+        if (charging) return Theme.accent
+        if (pct <= 20) return Theme.warning
+        return Theme.text
+    }
+
+    function refreshBattery() {
+        if (devicePath !== "" && !proc.running)
+            proc.running = true
+    }
+
+    Process {
+        id: discoverProc
+        command: ["upower", "-e"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var devices = this.text.trim().split("\n")
+                var displayDevice = ""
+                for (var i = 0; i < devices.length; i++) {
+                    if (devices[i].indexOf("/battery_") !== -1) {
+                        devicePath = devices[i]
+                        break
+                    }
+                    if (devices[i].endsWith("/DisplayDevice"))
+                        displayDevice = devices[i]
+                }
+                if (devicePath === "") devicePath = displayDevice
+                if (devicePath !== "") {
+                    proc.command = ["upower", "-i", devicePath]
+                    refreshBattery()
+                }
+            }
+        }
     }
 
     Process {
         id: proc
-        command: ["upower", "-i", "/org/freedesktop/UPower/devices/battery_BAT1"]
+        onExited: code => {
+            if (code !== 0) {
+                devicePath = ""
+                discoverProc.running = true
+            }
+        }
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = this.text.split("\n")
@@ -158,8 +194,14 @@ Item {
         }
     }
 
-    Timer { interval: 5000; running: true; repeat: true; onTriggered: proc.running = true }
-    Component.onCompleted: proc.running = true
+    Timer { interval: 5000; running: true; repeat: true; onTriggered: refreshBattery() }
+    Timer {
+        interval: 30000
+        running: devicePath === ""
+        repeat: true
+        onTriggered: discoverProc.running = true
+    }
+    Component.onCompleted: discoverProc.running = true
 
     Process {
         id: lowAlert
@@ -185,7 +227,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ma.containsMouse ? "#141628" : "transparent"
+        color: ma.containsMouse ? Theme.surfaceHover : "transparent"
         radius: 8
 
         MouseArea {
@@ -199,8 +241,8 @@ Item {
             id: row
             anchors.centerIn: parent
             spacing: 4
-            Text { text: batIcon(); color: batColor(); font.family: "Maple Mono NF"; font.pixelSize: 14 }
-            Text { text: pct + "%"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 13 }
+            Text { text: batIcon(); color: batColor(); font.family: Theme.fontFamily; font.pixelSize: 14 }
+            Text { text: pct + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 
@@ -221,7 +263,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: "#0f1120"
+            color: Theme.surface
             radius: 10
             border.color: Qt.rgba(0.306, 0.788, 0.690, 0.15)
             border.width: 1
@@ -230,13 +272,13 @@ Item {
         Column {
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: 12 }
             spacing: 6
-            Text { text: pct + "%"; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 14 }
+            Text { text: pct + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 14 }
             Text {
                 text: charging
                     ? (timeLeft !== "" ? timeLeft + " until full" : "Charging")
                     : (displayTimeLeft() || "Discharging")
-                color: "#7f849c"
-                font.family: "Maple Mono NF"
+                color: Theme.textMuted
+                font.family: Theme.fontFamily
                 font.pixelSize: 12
             }
         }

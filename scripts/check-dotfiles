@@ -28,6 +28,12 @@ if command -v qmllint >/dev/null 2>&1; then
   done < <(find apps/.config/quickshell -type f -name '*.qml' -print | sort)
 fi
 
+check "centralized Quickshell theme" bash -c \
+  '! rg -n '\''"#[0-9A-Fa-f]{6,8}"|font\.family: "Maple Mono NF"'\'' apps/.config/quickshell --glob '\''*.qml'\'''
+
+check "event-driven Niri widgets" bash -c \
+  '! rg -n '\''\["niri", "msg", "--json", "(workspaces|focused-window)"\]'\'' apps/.config/quickshell --glob '\''*.qml'\'''
+
 if command -v fish >/dev/null 2>&1; then
   check "Fish configuration" fish -n \
     fish/.config/fish/config.fish \

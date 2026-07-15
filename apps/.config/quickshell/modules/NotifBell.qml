@@ -1,6 +1,7 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 
 Item {
     implicitWidth: 32
@@ -21,7 +22,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ma.containsMouse ? "#141628" : "transparent"
+        color: ma.containsMouse ? Theme.surfaceHover : "transparent"
         radius: 8
 
         MouseArea {
@@ -42,8 +43,8 @@ Item {
         Text {
             anchors.centerIn: parent
             text: mode === "dnd" ? "󰂛" : "󰂚"
-            color: mode === "dnd" ? "#7f849c" : (unread > 0 ? "#ec5f89" : "#7f849c")
-            font.family: "Maple Mono NF"
+            color: mode === "dnd" ? Theme.textMuted : (unread > 0 ? Theme.pink : Theme.textMuted)
+            font.family: Theme.fontFamily
             font.pixelSize: 15
         }
 
@@ -55,7 +56,7 @@ Item {
             width: 8
             height: 8
             radius: 4
-            color: "#ec5f89"
+            color: Theme.pink
         }
     }
 
@@ -74,7 +75,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: "#0f1120"
+            color: Theme.surface
             radius: 12
             border.color: Qt.rgba(0.306, 0.788, 0.690, 0.15)
             border.width: 1
@@ -93,8 +94,8 @@ Item {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Notifications"
-                        color: "#cdd6f4"
-                        font.family: "Maple Mono NF"
+                        color: Theme.text
+                        font.family: Theme.fontFamily
                         font.pixelSize: 13
                         font.bold: true
                     }
@@ -103,8 +104,8 @@ Item {
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Clear all"
-                        color: "#7f849c"
-                        font.family: "Maple Mono NF"
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
                         font.pixelSize: 11
                         MouseArea { anchors.fill: parent; onClicked: { historyCleared(); cleared() } }
                     }
@@ -119,8 +120,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: mode === "dnd" ? "DND: toasts muted" : "Normal: toasts shown"
-                        color: mode === "dnd" ? "#ec5f89" : "#4ec9b0"
-                        font.family: "Maple Mono NF"
+                        color: mode === "dnd" ? Theme.pink : Theme.accent
+                        font.family: Theme.fontFamily
                         font.pixelSize: 10
                     }
 
@@ -146,8 +147,8 @@ Item {
                     Text {
                         visible: history.length === 0
                         text: "No notifications"
-                        color: "#3a3f5c"
-                        font.family: "Maple Mono NF"
+                        color: Theme.border
+                        font.family: Theme.fontFamily
                         font.pixelSize: 12
                     }
 
@@ -176,16 +177,16 @@ Item {
 
                                 Text {
                                     text: modelData.app
-                                    color: "#c792ea"
-                                    font.family: "Maple Mono NF"
+                                    color: Theme.secondary
+                                    font.family: Theme.fontFamily
                                     font.pixelSize: 11
                                     font.bold: true
                                 }
 
                                 Text {
                                     text: modelData.summary
-                                    color: "#cdd6f4"
-                                    font.family: "Maple Mono NF"
+                                    color: Theme.text
+                                    font.family: Theme.fontFamily
                                     font.pixelSize: 12
                                     width: parent.width
                                     elide: Text.ElideRight
@@ -194,8 +195,8 @@ Item {
 
                                 Text {
                                     text: modelData.body
-                                    color: "#7f849c"
-                                    font.family: "Maple Mono NF"
+                                    color: Theme.textMuted
+                                    font.family: Theme.fontFamily
                                     font.pixelSize: 11
                                     width: parent.width
                                     wrapMode: Text.WordWrap

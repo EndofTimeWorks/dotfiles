@@ -1,6 +1,7 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 import Quickshell.Io
 
 Item {
@@ -23,7 +24,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ma.containsMouse ? "#141628" : "transparent"
+        color: ma.containsMouse ? Theme.surfaceHover : "transparent"
         radius: 8
 
         MouseArea {
@@ -37,8 +38,8 @@ Item {
             id: row
             anchors.centerIn: parent
             spacing: 8
-            Text { text: timeStr; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 14; font.weight: Font.Medium }
-            Text { text: dateStr; color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 12 }
+            Text { text: timeStr; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 14; font.weight: Font.Medium }
+            Text { text: dateStr; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 12 }
         }
     }
 
@@ -104,7 +105,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: "#0f1120"
+            color: Theme.surface
             radius: 10
             border.color: Qt.rgba(0.306, 0.788, 0.690, 0.15)
             border.width: 1
@@ -115,15 +116,15 @@ Item {
             anchors.margins: 12
             spacing: 8
 
-            Text { text: timeStr; color: "#cdd6f4"; font.family: "Maple Mono NF"; font.pixelSize: 18; font.bold: true }
-            Text { text: Qt.formatDate(new Date(), "dddd, MMMM d"); color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 12 }
-            Text { text: "System: " + panel.tzLabel; color: "#7f849c"; font.family: "Maple Mono NF"; font.pixelSize: 11 }
+            Text { text: timeStr; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 18; font.bold: true }
+            Text { text: Qt.formatDate(new Date(), "dddd, MMMM d"); color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 12 }
+            Text { text: "System: " + panel.tzLabel; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 11 }
             Text {
                 text: panel.detectedTz !== ""
                     ? "Detected: " + (panel.detectedLocation !== "" ? panel.detectedLocation + " • " : "") + panel.detectedTz
                     : "Detected: unavailable"
-                color: "#4ec9b0"
-                font.family: "Maple Mono NF"
+                color: Theme.accent
+                font.family: Theme.fontFamily
                 font.pixelSize: 11
                 elide: Text.ElideRight
                 width: parent.width
@@ -138,8 +139,8 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     text: panel.detectedTz !== "" ? "Use detected timezone" : "Refresh detected location"
-                    color: "#cdd6f4"
-                    font.family: "Maple Mono NF"
+                    color: Theme.text
+                    font.family: Theme.fontFamily
                     font.pixelSize: 11
                 }
 
@@ -170,15 +171,15 @@ Item {
                     spacing: 2
                     Text {
                         text: Qt.formatDate(new Date(), "MMMM yyyy")
-                        color: "#cdd6f4"
-                        font.family: "Maple Mono NF"
+                        color: Theme.text
+                        font.family: Theme.fontFamily
                         font.pixelSize: 12
                         font.bold: true
                     }
                     Text {
                         text: Qt.formatDate(new Date(), "dddd, d")
-                        color: "#7f849c"
-                        font.family: "Maple Mono NF"
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
                         font.pixelSize: 11
                     }
                 }
@@ -194,8 +195,8 @@ Item {
                     anchors.fill: parent
                     anchors.leftMargin: 8
                     anchors.rightMargin: 8
-                    color: "#cdd6f4"
-                    font.family: "Maple Mono NF"
+                    color: Theme.text
+                    font.family: Theme.fontFamily
                     font.pixelSize: 11
                     clip: true
                     selectByMouse: true
@@ -207,8 +208,8 @@ Item {
                     anchors.leftMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
                     text: searchInput.text === "" ? "Search timezone..." : ""
-                    color: "#4a5280"
-                    font.family: "Maple Mono NF"
+                    color: Theme.divider
+                    font.family: Theme.fontFamily
                     font.pixelSize: 11
                 }
             }
@@ -238,8 +239,8 @@ Item {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 8
                                 text: modelData
-                                color: "#cdd6f4"
-                                font.family: "Maple Mono NF"
+                                color: Theme.text
+                                font.family: Theme.fontFamily
                                 font.pixelSize: 11
                             }
 

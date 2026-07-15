@@ -1,6 +1,7 @@
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "../Theme.js" as Theme
 
 Item {
     implicitWidth: visible ? 170 : 0
@@ -24,7 +25,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ma.containsMouse ? "#141628" : "transparent"
+        color: ma.containsMouse ? Theme.surfaceHover : "transparent"
         radius: 8
 
         MouseArea {
@@ -46,16 +47,16 @@ Item {
 
             Text {
                 text: "󰎈"
-                color: "#4ec9b0"
-                font.family: "Maple Mono NF"
+                color: Theme.accent
+                font.family: Theme.fontFamily
                 font.pixelSize: 14
             }
 
             Text {
                 Layout.fillWidth: true
                 text: mediaText
-                color: "#cdd6f4"
-                font.family: "Maple Mono NF"
+                color: Theme.text
+                font.family: Theme.fontFamily
                 font.pixelSize: 12
                 elide: Text.ElideRight
             }
