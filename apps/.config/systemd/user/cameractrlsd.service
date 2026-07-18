@@ -1,0 +1,12 @@
+[Unit]
+Description=CameraCtrls daemon - restore control values
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/cameractrlsd
+Restart=on-failure
+RestartSec=2s
+
+[Install]
+WantedBy=graphical-session.target
