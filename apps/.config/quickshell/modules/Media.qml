@@ -111,7 +111,7 @@ Item {
     PopupWindow {
         id: popup
         visible: false
-        grabFocus: false
+        grabFocus: true
         anchor.window: root.barWindow
         anchor.rect.x: {
             if (!root.barWindow) return 0

@@ -40,6 +40,9 @@ check "event-driven desktop services" bash -c \
 check "shared notification window state" bash -c \
   '! rg -n '\''python3|niri msg -j windows'\'' apps/.config/quickshell/NotificationPopup.qml'
 
+check "dismissible Quickshell popups" bash -c \
+  '! rg -n '\''grabFocus: false'\'' apps/.config/quickshell --glob '\''*.qml'\'''
+
 check "single desktop shell implementation" test ! -e apps/.config/ags
 
 check "no silent QML exceptions" bash -c \

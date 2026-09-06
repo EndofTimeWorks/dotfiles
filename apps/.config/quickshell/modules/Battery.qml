@@ -11,8 +11,8 @@ Item {
 
     property var barWindow
     property int alertStage: 0
-    readonly property var battery: UPower.displayDevice
-    readonly property int pct: battery && battery.ready ? Math.round(battery.percentage) : 0
+    readonly property var battery: findBattery()
+    readonly property int pct: battery && battery.ready ? Math.round(battery.percentage * 100) : 0
     readonly property bool charging: battery && (
         battery.state === UPowerDeviceState.Charging
         || battery.state === UPowerDeviceState.FullyCharged
@@ -21,6 +21,14 @@ Item {
     readonly property real secondsLeft: battery
         ? (charging ? battery.timeToFull : battery.timeToEmpty)
         : 0
+
+    function findBattery() {
+        var devices = UPower.devices.values
+        for (var i = 0; i < devices.length; i++) {
+            if (devices[i].isLaptopBattery) return devices[i]
+        }
+        return UPower.displayDevice
+    }
 
     function alertText() {
         var left = displayTimeLeft()
@@ -131,7 +139,7 @@ Item {
     PopupWindow {
         id: popup
         visible: false
-        grabFocus: false
+        grabFocus: true
         anchor.window: barWindow
         anchor.rect.x: {
             if (!barWindow) return 0
