@@ -25,9 +25,6 @@
 */Trust Tokens-journal
 */Network Persistent State
 
-# Secrets
-github-copilot/apps.json
-
 # JetBrains runtime
 JetBrains/*/event-log-metadata/
 JetBrains/*/workspace/
@@ -39,6 +36,3 @@ JetBrains/*/options/trusted-paths.xml
 JetBrains/*/options/usage.statistics.xml
 JetBrains/*/options/features.usage.statistics.xml
 JetBrains/*/options/window.state.xml
-# AGS runtime / build artifacts
-ags/node_modules/
-ags/@girs/
