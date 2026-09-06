@@ -4,7 +4,7 @@ import "../Theme.js" as Theme
 Item {
     implicitWidth: visible ? 190 : 0
     implicitHeight: 32
-    visible: focusedWindow !== null
+    visible: enabled && focusedWindow !== null
     clip: true
 
     property var state

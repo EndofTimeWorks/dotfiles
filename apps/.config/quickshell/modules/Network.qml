@@ -1,62 +1,54 @@
-import Quickshell.Io
+import Quickshell.Networking
 import QtQuick
 import QtQuick.Layouts
 import "../Theme.js" as Theme
 
 Item {
+    id: root
+
     implicitWidth: row.implicitWidth + 10
     implicitHeight: 28
 
-    property string netIcon: "󰤭"
-    property string netLabel: "offline"
-    property string netColor: Theme.textMuted
     property bool showIp: false
+    property bool compact: false
+    readonly property var devices: Networking.devices.values
+    readonly property var activeDevice: findActiveDevice()
+    readonly property var activeNetwork: findActiveNetwork()
+    readonly property bool wifiBlocked: !Networking.wifiHardwareEnabled
+    readonly property int signalStrength: activeNetwork ? Math.round(activeNetwork.signalStrength) : 0
+    readonly property string netIcon: {
+        if (wifiBlocked && !activeDevice) return "󰖪"
+        if (!activeDevice) return "󰤭"
+        if (activeDevice.type === DeviceType.Wired) return "󰈀"
+        if (signalStrength > 75) return "󰤨"
+        if (signalStrength > 50) return "󰤥"
+        if (signalStrength > 25) return "󰤢"
+        return "󰤟"
+    }
+    readonly property string netLabel: {
+        if (wifiBlocked && !activeDevice) return "rfkill"
+        if (!activeDevice) return "offline"
+        if (showIp) return activeDevice.address || "no ip"
+        if (activeDevice.type === DeviceType.Wired) return "wired"
+        return activeNetwork ? (activeNetwork.name || "connected") : "connected"
+    }
+    readonly property string netColor: activeDevice ? Theme.accent : (wifiBlocked ? Theme.warning : Theme.textMuted)
 
-    Process {
-        id: proc
-        command: ["bash", "-c", [
-            "rfkill list wifi | grep -q 'blocked: yes' && echo rfkill && exit;",
-            "eth=$(nmcli -t -f device,type,state dev 2>/dev/null | grep ':ethernet:connected' | head -1);",
-            "wifi=$(nmcli -t -f active,ssid,signal dev wifi 2>/dev/null | grep '^yes' | head -1);",
-            "ip=$(ip -4 route get 1.1.1.1 2>/dev/null | grep -oP '(?<=src )[\\d.]+');",
-            "echo \"$eth|$wifi|$ip\""
-        ].join(" ")]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var out = this.text.trim()
-                if (out === "rfkill") {
-                    netIcon = "󰖪"
-                    netLabel = "rfkill"
-                    netColor = Theme.warning
-                    return
-                }
-                var parts = out.split("|")
-                var eth = parts[0] || ""
-                var wifi = parts[1] || ""
-                var ip = parts[2] || ""
-
-                if (eth) {
-                    netIcon = "󰈀"
-                    netLabel = showIp ? (ip || "no ip") : "wired"
-                    netColor = Theme.accent
-                } else if (wifi) {
-                    var wp = wifi.split(":")
-                    var ssid = wp[1] || "connected"
-                    var sig = parseInt(wp[2]) || 0
-                    netIcon = sig > 75 ? "󰤨" : sig > 50 ? "󰤥" : sig > 25 ? "󰤢" : "󰤟"
-                    netLabel = showIp ? (ip || "no ip") : ssid
-                    netColor = Theme.accent
-                } else {
-                    netIcon = "󰤭"
-                    netLabel = "offline"
-                    netColor = Theme.textMuted
-                }
-            }
+    function findActiveDevice() {
+        for (var i = 0; i < devices.length; i++) {
+            if (devices[i].connected) return devices[i]
         }
+        return null
     }
 
-    Timer { interval: 5000; running: true; repeat: true; onTriggered: proc.running = true }
-    Component.onCompleted: proc.running = true
+    function findActiveNetwork() {
+        if (!activeDevice || activeDevice.type !== DeviceType.Wifi) return null
+        var networks = activeDevice.networks.values
+        for (var i = 0; i < networks.length; i++) {
+            if (networks[i].connected) return networks[i]
+        }
+        return null
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -66,17 +58,14 @@ Item {
             id: ma
             anchors.fill: parent
             hoverEnabled: true
-            onClicked: {
-                showIp = !showIp
-                proc.running = true
-            }
+            onClicked: showIp = !showIp
         }
         RowLayout {
             id: row
             anchors.centerIn: parent
             spacing: 4
-            Text { text: netIcon; color: netColor; font.family: Theme.fontFamily; font.pixelSize: 14 }
-            Text { text: netLabel; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13 }
+            Text { text: root.netIcon; color: root.netColor; font.family: Theme.fontFamily; font.pixelSize: 14 }
+            Text { visible: !root.compact; text: root.netLabel; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 }

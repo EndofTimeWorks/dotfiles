@@ -30,7 +30,6 @@ in
     ".config/hypr/hyprlock.conf".source = repoFile "apps/.config/hypr/hyprlock.conf";
     ".config/mimeapps.list".source = repoFile "apps/.config/mimeapps.list";
     ".config/niri/config.kdl".source = repoFile "apps/.config/niri/config.kdl";
-    ".config/pavucontrol.ini".source = repoFile "apps/.config/pavucontrol.ini";
     ".config/quickshell".source = repoFile "apps/.config/quickshell";
     ".config/starship.toml".source = repoFile "apps/.config/starship.toml";
     ".config/topgrade.toml".source = repoFile "apps/.config/topgrade.toml";
@@ -48,6 +47,7 @@ in
     ".config/fish/conf.d/colors.fish".source = repoFile "fish/.config/fish/conf.d/colors.fish";
 
     ".local/bin/display-brightness".source = repoFile "apps/.local/bin/display-brightness";
+    ".local/bin/device-stats".source = repoFile "apps/.local/bin/device-stats";
     ".local/bin/hyprlock-lock".source = repoFile "apps/.local/bin/hyprlock-lock";
     ".local/bin/idle-lock-suspend".source = repoFile "apps/.local/bin/idle-lock-suspend";
     ".local/bin/location-info".source = repoFile "apps/.local/bin/location-info";

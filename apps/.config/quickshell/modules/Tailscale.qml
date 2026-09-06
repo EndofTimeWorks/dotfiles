@@ -9,6 +9,7 @@ Item {
     implicitHeight: 28
 
     property var barWindow
+    property bool compact: false
     property bool up: false
     property string ip: ""
     property int peers: 0
@@ -23,7 +24,12 @@ Item {
                     up = j.BackendState === "Running"
                     ip = j.TailscaleIPs && j.TailscaleIPs[0] ? j.TailscaleIPs[0] : ""
                     peers = Object.keys(j.Peer || {}).length
-                } catch (e) {}
+                } catch (error) {
+                    up = false
+                    ip = ""
+                    peers = 0
+                    console.warn("Could not parse Tailscale status:", error)
+                }
             }
         }
         onExited: (code) => {
@@ -76,7 +82,7 @@ Item {
                 opacity: up ? 1.0 : 0.55
                 smooth: true
             }
-            Text { text: up ? "on" : "off"; color: up ? Theme.secondary : Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 13 }
+            Text { visible: !compact; text: up ? "on" : "off"; color: up ? Theme.secondary : Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 

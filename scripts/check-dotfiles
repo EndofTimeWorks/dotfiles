@@ -34,6 +34,17 @@ check "centralized Quickshell theme" bash -c \
 check "event-driven Niri widgets" bash -c \
   '! rg -n '\''\["niri", "msg", "--json", "(workspaces|focused-window)"\]'\'' apps/.config/quickshell --glob '\''*.qml'\'''
 
+check "event-driven desktop services" bash -c \
+  '! rg -n '\''\b(playerctl|upower|nmcli)\b'\'' apps/.config/quickshell --glob '\''*.qml'\'''
+
+check "shared notification window state" bash -c \
+  '! rg -n '\''python3|niri msg -j windows'\'' apps/.config/quickshell/NotificationPopup.qml'
+
+check "single desktop shell implementation" test ! -e apps/.config/ags
+
+check "no silent QML exceptions" bash -c \
+  '! rg -n '\''catch\s*\([^)]*\)\s*\{\s*\}'\'' apps/.config/quickshell --glob '\''*.qml'\'''
+
 if command -v fish >/dev/null 2>&1; then
   check "Fish configuration" fish -n \
     fish/.config/fish/config.fish \
@@ -47,11 +58,17 @@ fi
 
 if command -v jq >/dev/null 2>&1; then
   check "JSON configuration" jq empty \
-    apps/.config/ags/package.json \
     apps/.config/vicinae/settings.json \
     apps/.config/zed/keymap.json \
+    apps/.config/zed/settings.json \
     apps/.config/zed/themes/zed.json
+  check "Zed AI integrations disabled" jq -e \
+    '.disable_ai == true and (has("agent") | not) and (has("agent_servers") | not) and (has("context_servers") | not)' \
+    apps/.config/zed/settings.json
 fi
+
+check "pavucontrol state is deployment-private" bash -c \
+  'grep -Fxq -- "--ignore=^\\.config/pavucontrol\\.ini$" .stowrc && ! rg -n '\''apps/\.config/pavucontrol\.ini"'\'' home/end.nix'
 
 check "stale checkout paths" bash -c \
   '! git grep -nE "/home/end/(Github|projects)/dotfiles" -- ":(exclude)README.md"'
@@ -64,6 +81,15 @@ required_commands=(
 for command_name in "${required_commands[@]}"; do
   check "runtime command: $command_name" command -v "$command_name"
 done
+
+check "idle uses suspend-then-hibernate" grep -Fxq \
+  'systemctl suspend-then-hibernate' apps/.local/bin/idle-lock-suspend
+
+check "brightness targets backlight devices" grep -Fq \
+  'brightnessctl --class=backlight "$@"' apps/.local/bin/display-brightness
+
+check "locker waits for session lock" grep -Fq \
+  'onLockLocked called' apps/.local/bin/hyprlock-lock
 
 check "Plasma files are non-executable" bash -c \
   '! find plasma -type f -perm /111 -print -quit | grep -q .'

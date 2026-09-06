@@ -9,6 +9,7 @@ Item {
     implicitHeight: 28
 
     property var barWindow
+    property bool compact: false
     property bool connected: false
     property string location: ""
     property string ip: ""
@@ -99,7 +100,7 @@ Item {
                 opacity: connected ? 1.0 : 0.55
                 smooth: true
             }
-            Text { text: connected ? "on" : "off"; color: connected ? Theme.accent : Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 13 }
+            Text { visible: !compact; text: connected ? "on" : "off"; color: connected ? Theme.accent : Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 13 }
         }
     }
 

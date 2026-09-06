@@ -6,6 +6,9 @@ import "modules"
 import "Theme.js" as Theme
 
 Scope {
+    id: root
+
+    property var niriState
     property int notifUnread: 0
     property var notifHistory: []
     property string notifMode: "normal"
@@ -16,14 +19,14 @@ Scope {
     signal notifHistoryCleared()
     signal dimChanged(real val)
 
-    NiriState { id: niriState }
-
     Variants {
         model: Quickshell.screens
         delegate: Component {
             PanelWindow {
                 id: barWin
                 required property var modelData
+                readonly property bool compact: width < 1450
+                readonly property bool narrow: width < 1100
                 screen: modelData
                 color: "transparent"
                 anchors { top: true; left: true; right: true }
@@ -61,8 +64,11 @@ Scope {
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
                                     spacing: 4
-                                    Workspaces { state: niriState }
-                                    WindowTitle { state: niriState }
+                                    Workspaces { state: root.niriState }
+                                    WindowTitle {
+                                        state: root.niriState
+                                        enabled: !barWin.narrow
+                                    }
                                 }
                             }
 
@@ -71,17 +77,23 @@ Scope {
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: 4
                                 Clock { barWindow: barWin }
-                                Media {}
+                                Media {
+                                    barWindow: barWin
+                                    compact: barWin.compact
+                                }
                             }
 
                             RowLayout {
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: 3
-                                SysStats {}
-                                Weather {}
-                                Mullvad { barWindow: barWin }
-                                Tailscale { barWindow: barWin }
-                                Network {}
+                                SysStats {
+                                    barWindow: barWin
+                                    compact: barWin.narrow
+                                }
+                                Weather { enabled: !barWin.compact }
+                                Mullvad { barWindow: barWin; compact: barWin.narrow }
+                                Tailscale { barWindow: barWin; compact: barWin.narrow }
+                                Network { compact: barWin.narrow }
                                 Battery { barWindow: barWin }
                                 Brightness {
                                     dim: dimAmount

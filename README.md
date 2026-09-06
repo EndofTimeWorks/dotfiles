@@ -25,11 +25,10 @@ without first checking conflicts. Both methods point at the same repository;
 they are not meant to own the same live path simultaneously.
 
 Generated application state is intentionally excluded. In particular,
-`fish_variables`, Zed backup files, private application state, and raw archives
-are not deployment inputs.
+`fish_variables`, `pavucontrol.ini`, Zed backup files, private application
+state, and raw archives are not deployment inputs.
 
-The tracked `apps/.config/ags` tree is a legacy reference implementation. Stow
-intentionally ignores it; Quickshell is the only deployed and launched shell.
+Quickshell is the only tracked, deployed, and launched desktop shell.
 
 ## Quick Apply With Stow
 
@@ -112,8 +111,8 @@ niri msg action load-config-file
 Current startup behavior:
 
 - starts Quickshell through `~/.local/bin/quickshell-session`
-- starts Vicinae server
-- starts Signal, Discord, Zen, qpwgraph, WezTerm, Helium, Obsidian, and Thunderbird
+- uses the package-provided `vicinae.service` for the launcher server
+- starts Signal, Discord, qpwgraph, WezTerm, Helium, Obsidian, and Thunderbird
 - routes startup apps to the intended workspaces
 - maximizes startup app windows
 
@@ -124,9 +123,10 @@ Super+Alt+L
 ```
 
 Idle handling runs through `swayidle.service`. After 15 minutes of compositor
-idle time it starts hyprlock and suspends. Niri starts the service idempotently,
-so reloading Niri does not restart the idle timer or create duplicate swayidle
-processes.
+idle time it starts hyprlock and requests suspend-then-hibernate. The system
+sleep policy controls the two-hour hibernation delay. Niri starts the service
+idempotently, so reloading Niri does not restart the idle timer or create
+duplicate swayidle processes.
 
 ## Quickshell
 
@@ -162,7 +162,11 @@ Shell architecture:
 
 - `Theme.js` is the single source for Quickshell colors and typography
 - `NiriState.qml` consumes one persistent Niri event stream for workspace and focused-window state
-- battery discovery uses UPower device enumeration instead of a fixed `BAT0` or `BAT1` path
+- notifications reuse that Niri state to focus exact application windows
+- media playback uses Quickshell's event-driven MPRIS service
+- battery and network state use Quickshell's UPower and NetworkManager services
+- the bar progressively collapses non-essential labels on narrow outputs
+- clicking CPU/RAM opens detailed processor, memory, temperature, storage, load, uptime, and kernel information
 
 Notification behavior:
 
@@ -180,6 +184,9 @@ Brightness behavior:
 Media keys:
 
 - play/pause, next, and previous use `playerctl`
+- left-click the media title for artwork, a seek bar, and playback controls
+- middle-click toggles playback; right-click skips to the next track
+- scroll over the media title to switch between active players
 
 ## RFKill Guard
 
@@ -289,11 +296,14 @@ Example result:
 Restart Vicinae after changing desktop entries:
 
 ```bash
-pkill -f 'vicinae.*server' || true
-vicinae server >/tmp/vicinae.log 2>&1 &
+systemctl --user restart vicinae.service
 ```
 
 ## Zed Defaults
+
+`apps/.config/zed/settings.json` is tracked and deployed normally. Zed AI is
+disabled, and the file contains no agent servers, context servers, or private
+tokens.
 
 `apps/.config/mimeapps.list` uses:
 
@@ -413,7 +423,7 @@ stow -nv plasma
 Check Quickshell logs:
 
 ```bash
-quickshell log -p ~/.config/quickshell
+quickshell log --any-display -p ~/.config/quickshell
 tail -f /tmp/quickshell.log
 ```
 

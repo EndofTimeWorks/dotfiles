@@ -1,9 +1,15 @@
 //@ pragma UseQApplication
 import Quickshell
+import "modules"
 
 Scope {
+    NiriState {
+        id: niriState
+    }
+
     NotificationPopup {
         id: notifications
+        niriState: niriState
     }
 
     Dimmer {
@@ -11,6 +17,7 @@ Scope {
     }
 
     Bar {
+        niriState: niriState
         notifUnread: notifications.unread
         notifHistory: notifications.history
         notifMode: notifications.mode

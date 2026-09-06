@@ -9,10 +9,12 @@ import "Theme.js" as Theme
 Scope {
     id: root
 
+    property var niriState
     property var history: []
     property int unread: 0
     property string mode: "normal"
-    property string pendingLaunchId: ""
+    property var focusQueue: []
+    property var toastEntries: []
 
     function runDesktopEntry(desktopEntry) {
         var id = String(desktopEntry || "")
@@ -89,23 +91,42 @@ Scope {
         return dedupe(ids)
     }
 
+    function findWindow(ids) {
+        if (!niriState) return null
+
+        var windows = niriState.windows || []
+        for (var i = 0; i < windows.length; i++) {
+            var appId = normalized(windows[i].app_id)
+            for (var j = 0; j < ids.length; j++) {
+                var candidate = normalized(ids[j])
+                if (appId === candidate || appId.endsWith("." + candidate))
+                    return windows[i]
+            }
+        }
+        return null
+    }
+
+    function startNextFocus() {
+        if (focusProc.running || focusQueue.length === 0) return
+        var windowId = focusQueue[0]
+        focusQueue = focusQueue.slice(1)
+        focusProc.command = ["niri", "msg", "action", "focus-window", "--id", String(windowId)]
+        focusProc.running = true
+    }
+
     function focusKnownWindow(appName, desktopEntry, allowLaunchFallback) {
         var ids = appIdCandidates(appName, desktopEntry)
-        var title = normalized(appName)
-        if (ids.length === 0 && title === "") {
-            if (allowLaunchFallback && desktopEntry) runDesktopEntry(desktopEntry)
-            return false
+        var window = findWindow(ids)
+        if (window) {
+            focusQueue = focusQueue.concat([window.id])
+            startNextFocus()
+            return true
         }
 
-        pendingLaunchId = allowLaunchFallback ? String(desktopEntry || fallbackDesktopId(appName) || "") : ""
-        focusProc.command = [
-            "python3",
-            "-c",
-            "import json,subprocess,sys\npats={s.lower() for s in json.loads(sys.argv[1]) if s}\ntitle=(sys.argv[2] or '').strip().lower()\nwins=json.loads(subprocess.check_output(['niri','msg','-j','windows']))\nfound=None\nfor w in wins:\n aid=str(w.get('app_id') or '').lower()\n ttl=str(w.get('title') or '').lower()\n if aid in pats or any(p in aid for p in pats) or (title and title in ttl):\n  found=str(w.get('id'))\n  break\nsys.exit(subprocess.call(['niri','msg','action','focus-window','--id',found]) if found else 1)",
-            JSON.stringify(ids),
-            title,
-        ]
-        focusProc.running = true
+        if (!allowLaunchFallback) return false
+        var launchId = String(desktopEntry || fallbackDesktopId(appName) || "")
+        if (launchId === "") return false
+        runDesktopEntry(launchId)
         return true
     }
 
@@ -120,7 +141,9 @@ Scope {
                 try {
                     a.invoke()
                     invoked = true
-                } catch (e) {}
+                } catch (error) {
+                    console.warn("Could not invoke notification action:", error)
+                }
 
                 if (invoked) {
                     focusKnownWindow(notif.appName, notif.desktopEntry, false)
@@ -146,7 +169,9 @@ Scope {
                     activateNotification(entry.notif)
                     return
                 }
-            } catch (e) {}
+            } catch (error) {
+                console.warn("Could not inspect historical notification:", error)
+            }
         }
 
         if (entry.desktopEntry && entry.desktopEntry !== "") {
@@ -166,13 +191,64 @@ Scope {
         return null
     }
 
+    function toastEntryById(id, time) {
+        for (var i = toastEntries.length - 1; i >= 0; i--) {
+            if (toastEntries[i].id === id && toastEntries[i].time === time)
+                return toastEntries[i]
+        }
+        return null
+    }
+
+    function upsertToastEntry(entry) {
+        var next = toastEntries.slice()
+        for (var i = 0; i < next.length; i++) {
+            if (next[i].id === entry.id) {
+                next[i] = entry
+                toastEntries = next
+                return
+            }
+        }
+        next.push(entry)
+        toastEntries = next
+    }
+
+    function takeToastEntry(id, time) {
+        var found = null
+        var next = []
+        for (var i = 0; i < toastEntries.length; i++) {
+            var entry = toastEntries[i]
+            if (entry.id === id && entry.time === time)
+                found = entry
+            else
+                next.push(entry)
+        }
+        toastEntries = next
+        return found
+    }
+
+    function closeNotification(entry, expired) {
+        if (!entry || !entry.notif) return
+        try {
+            if (!entry.notif.tracked) return
+            if (expired) entry.notif.expire()
+            else entry.notif.dismiss()
+        } catch (error) {
+            console.warn("Could not close notification:", error)
+        }
+    }
+
     function markRead() {
         unread = 0
     }
 
     function clearHistory() {
+        var entries = history.concat(toastEntries)
         history = []
+        toastEntries = []
+        toastModel.clear()
         unread = 0
+        for (var i = 0; i < entries.length; i++)
+            closeNotification(entries[i], false)
     }
 
     function setMode(nextMode) {
@@ -196,10 +272,7 @@ Scope {
     }
     Process {
         id: focusProc
-        onExited: (code) => {
-            if (code !== 0 && pendingLaunchId !== "") runDesktopEntry(pendingLaunchId)
-            pendingLaunchId = ""
-        }
+        onExited: Qt.callLater(root.startNextFocus)
     }
 
     Component.onCompleted: loadModeProc.running = true
@@ -219,24 +292,29 @@ Scope {
                 body: private_ ? "" : (notif.body || ""),
                 desktopEntry: notif.desktopEntry || "",
                 notif: notif,
+                transient: notif.transient,
                 time: Date.now()
             }
 
-            var arr = root.history.slice()
-            var replaced = false
-            for (var i = 0; i < arr.length; i++) {
-                if (arr[i].id === entry.id) {
-                    arr[i] = entry
-                    replaced = true
-                    break
+            if (!entry.transient) {
+                var arr = root.history.slice()
+                var replaced = false
+                for (var i = 0; i < arr.length; i++) {
+                    if (arr[i].id === entry.id) {
+                        arr[i] = entry
+                        replaced = true
+                        break
+                    }
                 }
+                if (!replaced) arr.push(entry)
+                if (arr.length > 100)
+                    closeNotification(arr.shift(), true)
+                root.history = arr
+                if (!replaced) root.unread++
             }
-            if (!replaced) arr.push(entry)
-            if (arr.length > 100) arr.shift()
-            root.history = arr
-            if (!replaced) root.unread++
 
             if (root.mode !== "dnd" || notif.urgency === NotificationUrgency.Critical) {
+                root.upsertToastEntry(entry)
                 var toast = {
                     id: entry.id,
                     time: entry.time,
@@ -254,10 +332,12 @@ Scope {
                     }
                 }
                 if (!toastReplaced) toastModel.append(toast)
-            }
 
-            var ms = notif.expireTimeout > 0 ? notif.expireTimeout * 1000 : 8000
-            expireTimer.createObject(root, { notifId: notif.id, notifTime: entry.time, delay: ms })
+                var ms = notif.expireTimeout > 0 ? notif.expireTimeout * 1000 : 8000
+                expireTimer.createObject(root, { notifId: notif.id, notifTime: entry.time, delay: ms })
+            } else if (entry.transient) {
+                root.closeNotification(entry, true)
+            }
         }
     }
 
@@ -271,12 +351,15 @@ Scope {
             running: true
             repeat: false
             onTriggered: {
+                var entry = root.takeToastEntry(notifId, notifTime)
                 for (var i = 0; i < toastModel.count; i++) {
                     if (toastModel.get(i).id === notifId && toastModel.get(i).time === notifTime) {
                         toastModel.remove(i)
                         break
                     }
                 }
+                if (entry && entry.transient)
+                    root.closeNotification(entry, true)
                 destroy()
             }
         }
@@ -285,7 +368,25 @@ Scope {
     ListModel { id: toastModel }
 
     PanelWindow {
-        screen: Quickshell.screens[0]
+        screen: {
+            if (!root.niriState || !root.niriState.focusedWindow)
+                return Quickshell.screens[0]
+
+            var workspaceId = root.niriState.focusedWindow.workspace_id
+            var output = ""
+            var workspaces = root.niriState.workspaces || []
+            for (var i = 0; i < workspaces.length; i++) {
+                if (workspaces[i].id === workspaceId) {
+                    output = workspaces[i].output || ""
+                    break
+                }
+            }
+            for (var j = 0; j < Quickshell.screens.length; j++) {
+                if (Quickshell.screens[j].name === output)
+                    return Quickshell.screens[j]
+            }
+            return Quickshell.screens[0]
+        }
         color: "transparent"
         anchors { top: true; right: true }
         implicitWidth: 360
@@ -316,9 +417,14 @@ Scope {
                         anchors.fill: parent
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         onClicked: (mouse) => {
+                            var entry = root.toastEntryById(model.id, model.time)
+                            if (!entry) entry = root.historyEntryById(model.id)
                             if (mouse.button === Qt.LeftButton) {
-                                root.activateHistoryEntry(root.historyEntryById(model.id) || model)
+                                root.activateHistoryEntry(entry || model)
                             }
+                            root.takeToastEntry(model.id, model.time)
+                            if (entry && entry.transient)
+                                root.closeNotification(entry, false)
                             for (var i = 0; i < toastModel.count; i++) {
                                 if (toastModel.get(i).id === model.id) {
                                     toastModel.remove(i)

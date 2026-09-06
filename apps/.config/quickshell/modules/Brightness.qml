@@ -149,7 +149,7 @@ Item {
                 id: dimSlider
                 width: parent.width
                 from: 0
-                to: 1
+                to: 0.85
                 value: dim
                 onMoved: {
                     dim = value

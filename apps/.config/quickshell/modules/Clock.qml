@@ -95,6 +95,21 @@ Item {
         }
 
         Process {
+            id: refreshLocationProc
+            command: ["bash", "-lc", "~/.local/bin/location-info refresh"]
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    var lines = this.text.trim().split("\n")
+                    for (var i = 0; i < lines.length; i++) {
+                        var l = lines[i]
+                        if (l.startsWith("timezone=")) panel.detectedTz = l.slice(9)
+                        if (l.startsWith("label=")) panel.detectedLocation = l.slice(6)
+                    }
+                }
+            }
+        }
+
+        Process {
             id: setTzProc
             command: ["true"]
             onExited: {
@@ -153,8 +168,7 @@ Item {
                             setTzProc.command = ["pkexec", "timedatectl", "set-timezone", panel.detectedTz]
                             setTzProc.running = true
                         } else {
-                            locationProc.command = ["bash", "-lc", "~/.local/bin/location-info refresh"]
-                            locationProc.running = true
+                            refreshLocationProc.running = true
                         }
                     }
                 }
