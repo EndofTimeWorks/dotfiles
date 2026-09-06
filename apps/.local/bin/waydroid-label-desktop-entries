@@ -3,6 +3,9 @@ set -euo pipefail
 
 APP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 PREFIX="[Android] "
+tmp=""
+
+trap '[[ -z "$tmp" ]] || rm -f -- "$tmp"' EXIT
 
 shopt -s nullglob
 for file in "$APP_DIR"/waydroid.*.desktop; do
@@ -12,7 +15,7 @@ for file in "$APP_DIR"/waydroid.*.desktop; do
     continue
   fi
 
-  tmp="$(mktemp)"
+  tmp="$(mktemp "${file}.XXXXXX")"
   awk -v prefix="$PREFIX" '
     BEGIN { in_entry = 0; renamed = 0 }
     /^\[Desktop Entry\]/ { in_entry = 1; print; next }
@@ -25,5 +28,7 @@ for file in "$APP_DIR"/waydroid.*.desktop; do
     }
     { print }
   ' "$file" > "$tmp"
+  chmod --reference="$file" "$tmp"
   mv "$tmp" "$file"
+  tmp=""
 done

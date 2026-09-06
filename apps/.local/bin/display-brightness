@@ -29,14 +29,18 @@ get_dim() {
   fi
 }
 
+backlightctl() {
+  brightnessctl --class=backlight "$@"
+}
+
 set_dim() {
   clamp_dim "${1:-0}" > "$DIM_FILE"
 }
 
 get_brightness_pct() {
   local cur max
-  cur="$(brightnessctl g)"
-  max="$(brightnessctl m)"
+  cur="$(backlightctl get)"
+  max="$(backlightctl max)"
   awk -v cur="$cur" -v max="$max" 'BEGIN {
     if (max <= 0) { print 0; exit }
     printf "%d\n", (cur / max) * 100 + 0.5
@@ -53,7 +57,7 @@ set_brightness_pct() {
     value=100
   fi
 
-  brightnessctl s "${value}%"
+  backlightctl set "${value}%"
 
   if (( value > MIN_BRIGHTNESS )); then
     set_dim 0
@@ -73,9 +77,9 @@ down_cmd() {
   local brightness dim next
   brightness="$(get_brightness_pct)"
   if (( brightness > MIN_BRIGHTNESS )); then
-    brightnessctl set "${HW_STEP}%-"
+    backlightctl set "${HW_STEP}%-"
     if (( "$(get_brightness_pct)" < MIN_BRIGHTNESS )); then
-      brightnessctl s "${MIN_BRIGHTNESS}%"
+      backlightctl set "${MIN_BRIGHTNESS}%"
     fi
     exit 0
   fi

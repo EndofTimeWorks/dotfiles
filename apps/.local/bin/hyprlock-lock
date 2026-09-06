@@ -5,15 +5,26 @@ if pgrep -xu "${USER}" hyprlock >/dev/null; then
   exit 0
 fi
 
-hyprlock --grace 0 --immediate-render --config "${HOME}/.config/hypr/hyprlock.conf" >/tmp/hyprlock.log 2>&1 &
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/hyprlock"
+LOG_FILE="$STATE_DIR/hyprlock.log"
+mkdir -p "$STATE_DIR"
+chmod 700 "$STATE_DIR"
 
-for _ in {1..20}; do
-  if pgrep -xu "${USER}" hyprlock >/dev/null; then
+hyprlock --grace 0 --immediate-render --config "${HOME}/.config/hypr/hyprlock.conf" >"$LOG_FILE" 2>&1 &
+lock_pid=$!
+
+for _ in {1..50}; do
+  if grep -Fq "onLockLocked called" "$LOG_FILE"; then
     exit 0
+  fi
+
+  if ! kill -0 "$lock_pid" 2>/dev/null; then
+    echo "hyprlock exited before acquiring the session lock" >&2
+    exit 1
   fi
 
   sleep 0.1
 done
 
-echo "hyprlock did not start" >&2
+echo "hyprlock did not confirm the session lock within 5 seconds" >&2
 exit 1

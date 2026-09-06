@@ -1,6 +1,19 @@
 if status is-interactive
-    # Commands to run in interactive sessions can go here
-    starship init fish | source
+    if type -q starship
+        starship init fish | source
+    end
+
+    if type -q fnm
+        fnm env --use-on-cd | source
+    end
+
+    if type -q rbenv
+        rbenv init - fish | source
+    end
+
+    if test -x ~/.local/bin/mise
+        ~/.local/bin/mise activate fish | source
+    end
 end
 
 fish_add_path /home/end/.spicetify
@@ -11,10 +24,5 @@ if not string match -q -- $PNPM_HOME $PATH
   set -gx PATH "$PNPM_HOME" $PATH
 end
 # pnpm end
-
-status --is-interactive; and . (fnm env --use-on-cd | psub)
-
-status --is-interactive; and rbenv init - fish | source
-~/.local/bin/mise activate fish | source
 
 alias packettracer="QT_QPA_PLATFORM=xcb /usr/lib/packettracer/packettracer.AppImage"

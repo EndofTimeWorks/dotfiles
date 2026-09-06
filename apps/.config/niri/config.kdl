@@ -263,7 +263,6 @@ layout {
 
 spawn-at-startup "bash" "-lc" "~/.local/bin/quickshell-session"
 spawn-at-startup "playerctld" "daemon"
-spawn-at-startup "vicinae" "server"
 // Keep idle handling in a user service so it gets the session environment and
 // can restart cleanly. It locks before sleep so PAM/fingerprint auth is
 // required on resume.
@@ -272,7 +271,6 @@ spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 spawn-at-startup "wallpaper-init"
 spawn-at-startup "signal-desktop"
 spawn-at-startup "discord"
-spawn-at-startup "zen-browser"
 spawn-at-startup "qpwgraph" "--minimized"
 spawn-at-startup "wezterm" "start" "--always-new-process"
 spawn-at-startup "helium-browser"
@@ -341,12 +339,11 @@ window-rule {
     default-column-width {}
 }
 
-// Open the Firefox picture-in-picture player as floating by default.
+// Open browser picture-in-picture players as floating by default.
 window-rule {
-    // This app-id regular expression will work for both:
-    // - host Firefox (app-id is "firefox")
-    // - Flatpak Firefox (app-id is "org.mozilla.firefox")
-    match app-id=r#"firefox$"# title="^Picture-in-Picture$"
+    // Firefox uses hyphens while Chromium-based browsers use spaces and
+    // sometimes vary the title's capitalization.
+    match title=r#"(?i)^Picture(?:-| )in(?:-| )Picture$"#
     open-floating true
 }
 
