@@ -26,15 +26,37 @@ in
   ];
 
   home.file = {
+    ".config/autostart/picom.desktop".source = repoFile "apps/.config/autostart/picom.desktop";
     ".config/btop/btop.conf".source = repoFile "apps/.config/btop/btop.conf";
+    ".config/firewall/applet.conf".source = repoFile "apps/.config/firewall/applet.conf";
     ".config/hypr/hyprlock.conf".source = repoFile "apps/.config/hypr/hyprlock.conf";
     ".config/mimeapps.list".source = repoFile "apps/.config/mimeapps.list";
     ".config/niri/config.kdl".source = repoFile "apps/.config/niri/config.kdl";
-    ".config/quickshell".source = repoFile "apps/.config/quickshell";
+    ".config/quickshell/Bar.qml".source = repoFile "apps/.config/quickshell/Bar.qml";
+    ".config/quickshell/Dimmer.qml".source = repoFile "apps/.config/quickshell/Dimmer.qml";
+    ".config/quickshell/NotificationPopup.qml".source = repoFile "apps/.config/quickshell/NotificationPopup.qml";
+    ".config/quickshell/Theme.js".source = repoFile "apps/.config/quickshell/Theme.js";
+    ".config/quickshell/modules/Battery.qml".source = repoFile "apps/.config/quickshell/modules/Battery.qml";
+    ".config/quickshell/modules/Brightness.qml".source = repoFile "apps/.config/quickshell/modules/Brightness.qml";
+    ".config/quickshell/modules/Clock.qml".source = repoFile "apps/.config/quickshell/modules/Clock.qml";
+    ".config/quickshell/modules/Media.qml".source = repoFile "apps/.config/quickshell/modules/Media.qml";
+    ".config/quickshell/modules/Mullvad.qml".source = repoFile "apps/.config/quickshell/modules/Mullvad.qml";
+    ".config/quickshell/modules/Network.qml".source = repoFile "apps/.config/quickshell/modules/Network.qml";
+    ".config/quickshell/modules/NiriState.qml".source = repoFile "apps/.config/quickshell/modules/NiriState.qml";
+    ".config/quickshell/modules/NotifBell.qml".source = repoFile "apps/.config/quickshell/modules/NotifBell.qml";
+    ".config/quickshell/modules/SysStats.qml".source = repoFile "apps/.config/quickshell/modules/SysStats.qml";
+    ".config/quickshell/modules/Tailscale.qml".source = repoFile "apps/.config/quickshell/modules/Tailscale.qml";
+    ".config/quickshell/modules/Tray.qml".source = repoFile "apps/.config/quickshell/modules/Tray.qml";
+    ".config/quickshell/modules/Volume.qml".source = repoFile "apps/.config/quickshell/modules/Volume.qml";
+    ".config/quickshell/modules/Weather.qml".source = repoFile "apps/.config/quickshell/modules/Weather.qml";
+    ".config/quickshell/modules/WindowTitle.qml".source = repoFile "apps/.config/quickshell/modules/WindowTitle.qml";
+    ".config/quickshell/modules/Workspaces.qml".source = repoFile "apps/.config/quickshell/modules/Workspaces.qml";
+    ".config/quickshell/shell.qml".source = repoFile "apps/.config/quickshell/shell.qml";
     ".config/starship.toml".source = repoFile "apps/.config/starship.toml";
     ".config/topgrade.toml".source = repoFile "apps/.config/topgrade.toml";
     ".config/vicinae/settings.json".source = repoFile "apps/.config/vicinae/settings.json";
     ".config/wezterm/wezterm.lua".source = repoFile "apps/.config/wezterm/wezterm.lua";
+    ".config/systemd/user/xdg-desktop-portal-wlr.service.d/override.conf".source = repoFile "apps/.config/systemd/user/xdg-desktop-portal-wlr.service.d/override.conf";
     ".config/xdg-desktop-portal/portals.conf".source = repoFile "apps/.config/xdg-desktop-portal/portals.conf";
     ".config/xdg-desktop-portal-wlr/config".source = repoFile "apps/.config/xdg-desktop-portal-wlr/config";
     ".config/zed/keymap.json".source = repoFile "apps/.config/zed/keymap.json";
@@ -42,6 +64,7 @@ in
     ".config/zed/themes/zed.json".source = repoFile "apps/.config/zed/themes/zed.json";
 
     ".local/share/applications/org.wezfurlong.wezterm.desktop".source = repoFile "apps/.local/share/applications/org.wezfurlong.wezterm.desktop";
+    ".local/share/icons/hicolor/256x256/apps/tailscale.png".source = repoFile "apps/.local/share/icons/hicolor/256x256/apps/tailscale.png";
 
     ".config/fish/config.fish".source = repoFile "fish/.config/fish/config.fish";
     ".config/fish/conf.d/colors.fish".source = repoFile "fish/.config/fish/conf.d/colors.fish";
@@ -62,6 +85,22 @@ in
   };
 
   programs.starship.enable = true;
+
+  systemd.user.services.cameractrlsd = {
+    Unit = {
+      Description = "CameraCtrls daemon - restore control values";
+      After = [ "graphical-session.target" ];
+    };
+
+    Service = {
+      Type = "simple";
+      ExecStart = "/usr/bin/cameractrlsd";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
+
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
 
   systemd.user.services.rfkill-guard = {
     Unit = {

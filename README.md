@@ -19,10 +19,10 @@ The expected checkout path is case-sensitive:
 
 ## Configuration Ownership
 
-The current Arch installation uses GNU Stow. Home Manager is present as a
-migration target, but it must not be activated on top of an existing Stow tree
-without first checking conflicts. Both methods point at the same repository;
-they are not meant to own the same live path simultaneously.
+The current Arch installation uses standalone Home Manager. It creates
+out-of-store links to this repository, so editing a tracked config still updates
+the live file immediately. GNU Stow remains installed only as a recovery tool;
+it must not own the same live paths at the same time.
 
 Generated application state is intentionally excluded. In particular,
 `fish_variables`, `pavucontrol.ini`, Zed backup files, private application
@@ -30,18 +30,22 @@ state, and raw archives are not deployment inputs.
 
 Quickshell is the only tracked, deployed, and launched desktop shell.
 
-## Quick Apply With Stow
+## Apply With Home Manager
 
 From the repo root:
 
 ```bash
-stow apps
-stow fish
+home-manager switch --flake .#end
 ```
 
-`plasma` is intentionally not part of the normal quick apply. Some Plasma files
-are machine-local or identity-bearing, so review that package manually before
-stowing it.
+Build without activating when reviewing a change:
+
+```bash
+nix build --no-link .#homeConfigurations.end.activationPackage
+```
+
+`plasma` is intentionally not managed by Home Manager. Some Plasma files are
+machine-local or identity-bearing, so review that package manually.
 
 Reload the active desktop pieces:
 
@@ -404,14 +408,14 @@ Do not blindly stow Plasma without reviewing the diff first.
 
 ## Home Manager And NixOS
 
-`flake.nix` currently defines only `homeConfigurations.end`. It is useful for
-testing the user configuration on Arch, but it is not a bootable NixOS system
-configuration. Do not run `nixos-install` from this repository yet.
+`flake.nix` defines the active `homeConfigurations.end` user configuration on
+Arch. It is not a bootable NixOS system configuration. Do not run
+`nixos-install` from this repository yet.
 
-Build the Home Manager activation package without applying it:
+Inspect previous Home Manager generations:
 
 ```bash
-nix build --no-link .#homeConfigurations.end.activationPackage
+home-manager generations
 ```
 
 The eventual NixOS configuration must add a verified
@@ -429,11 +433,15 @@ Run the repository checks before applying or committing changes:
 
 ## Troubleshooting
 
-Check stow conflicts:
+Check Home Manager without activating:
 
 ```bash
-stow -nv apps
-stow -nv fish
+nix build --no-link .#homeConfigurations.end.activationPackage
+```
+
+Stow is only used for the unmanaged Plasma package or explicit recovery:
+
+```bash
 stow -nv plasma
 ```
 

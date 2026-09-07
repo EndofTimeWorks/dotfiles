@@ -34,6 +34,44 @@ check_weather_unit_persistence() {
   return "$result"
 }
 
+# Print the files Stow historically deployed, excluding intentionally private
+# or application-owned state from .stowrc.
+# shellcheck disable=SC2329
+deployment_sources() {
+  local source target
+
+  while IFS= read -r source; do
+    target="${source#*/}"
+    case "$target" in
+      .config/.gitignore | \
+      .config/kwalletrc | \
+      .config/obsidian/* | \
+      .config/pavucontrol.ini | \
+      .config/zed/*.bak | \
+      .config/fish/fish_variables)
+        continue
+        ;;
+    esac
+    printf '%s\n' "$target"
+  done < <(find apps fish -type f -print) | sort
+}
+
+# shellcheck disable=SC2329
+check_home_manager_coverage() {
+  local generation="$1" missing
+
+  missing="$(
+    comm -23 \
+      <(deployment_sources) \
+      <(find -L "$generation/home-files" \( -type f -o -type l \) -printf '%P\n' | sort)
+  )"
+
+  if [[ -n "$missing" ]]; then
+    printf 'Home Manager does not deploy:\n%s\n' "$missing" >&2
+    return 1
+  fi
+}
+
 check "Git whitespace" git diff --check
 check "Niri configuration" niri validate -c apps/.config/niri/config.kdl
 
@@ -117,10 +155,6 @@ check "locker waits for session lock" grep -Fq \
 check "Plasma files are non-executable" bash -c \
   '! find plasma -type f -perm /111 -print -quit | grep -q .'
 
-if command -v stow >/dev/null 2>&1; then
-  check "Stow simulation" stow --no --verbose=1 apps fish
-fi
-
 for script in apps/.local/bin/* scripts/*; do
   [[ -f "$script" ]] || continue
   [[ "$(head -n 1 "$script")" == *bash* ]] || continue
@@ -144,8 +178,18 @@ if command -v systemd-analyze >/dev/null 2>&1; then
 fi
 
 if nix store ping --store daemon >/dev/null 2>&1; then
-  check "Home Manager evaluation" \
-    nix build --no-link "path:${repo_root}#homeConfigurations.end.activationPackage"
+  printf 'checking Home Manager evaluation... '
+  if home_manager_generation="$(
+    nix build --no-link --print-out-paths \
+      "path:${repo_root}#homeConfigurations.end.activationPackage"
+  )"; then
+    echo ok
+    check "Home Manager deployment coverage" \
+      check_home_manager_coverage "$home_manager_generation"
+  else
+    echo failed
+    failed=1
+  fi
 else
   echo "skipping Home Manager evaluation: Nix daemon is unavailable"
 fi
