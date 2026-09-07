@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/niri"
+STATE_FILE="$STATE_DIR/session-layout.json"
+LOCK_FILE="$STATE_DIR/session-layout.lock"
+SAVE_INTERVAL_SECONDS="${NIRI_LAYOUT_SAVE_INTERVAL_SECONDS:-45}"
+RESTORE_WAIT_SECONDS="${NIRI_LAYOUT_RESTORE_WAIT_SECONDS:-30}"
+
+mkdir -p "$STATE_DIR"
+chmod 700 "$STATE_DIR"
+
+niri_json() {
+  niri msg --json "$1"
+}
+
+save_layout() {
+  local workspaces windows tmp
+  workspaces="$(niri_json workspaces)" || return 1
+  windows="$(niri_json windows)" || return 1
+  tmp="$(mktemp "$STATE_DIR/.session-layout.XXXXXX")"
+
+  if ! jq -n --argjson workspaces "$workspaces" --argjson windows "$windows" '
+    def managed($app): [
+      "discord",
+      "helium",
+      "obsidian",
+      "org.mozilla.Thunderbird",
+      "org.wezfurlong.wezterm",
+      "signal",
+      "slack",
+      "steam",
+      "thunderbird"
+    ] | index($app) != null;
+
+    ($workspaces
+      | map(select(.name != null) | {key: (.id | tostring), value: .name})
+      | from_entries) as $workspace_names
+    | ($windows
+      | map(select(managed(.app_id)))
+      | map(select($workspace_names[(.workspace_id | tostring)] != null))
+      | sort_by(.id)) as $managed_windows
+    | reduce $managed_windows[] as $window (
+        {version: 1, counts: {}, windows: [], focused: null};
+        ($window.app_id) as $app
+        | (.counts[$app] // 0) as $ordinal
+        | .windows += [{
+            app_id: $app,
+            ordinal: $ordinal,
+            workspace: $workspace_names[($window.workspace_id | tostring)],
+            column: ($window.layout.pos_in_scrolling_layout[0] // 1),
+            width: ($window.layout.tile_size[0] // null),
+            floating: $window.is_floating
+          }]
+        | .counts[$app] = ($ordinal + 1)
+        | if $window.is_focused then
+            .focused = {app_id: $app, ordinal: $ordinal}
+          else . end
+      )
+    | del(.counts)
+  ' > "$tmp"; then
+    rm -f "$tmp"
+    return 1
+  fi
+
+  if [[ -f "$STATE_FILE" ]] && cmp -s "$tmp" "$STATE_FILE"; then
+    rm -f "$tmp"
+  else
+    mv "$tmp" "$STATE_FILE"
+  fi
+}
+
+window_id() {
+  local windows="$1" app_id="$2" ordinal="$3"
+  jq -r --arg app_id "$app_id" --argjson ordinal "$ordinal" '
+    [.[] | select(.app_id == $app_id)] | sort_by(.id) | .[$ordinal].id // empty
+  ' <<< "$windows"
+}
+
+all_expected_windows_ready() {
+  local windows="$1"
+  jq -e --argjson windows "$windows" '
+    all(.windows[];
+      . as $saved
+      | ([$windows[] | select(.app_id == $saved.app_id)] | length) > $saved.ordinal
+    )
+  ' "$STATE_FILE" >/dev/null
+}
+
+wait_for_windows() {
+  local deadline windows
+  deadline=$((SECONDS + RESTORE_WAIT_SECONDS))
+  while (( SECONDS < deadline )); do
+    windows="$(niri_json windows 2>/dev/null || printf '[]')"
+    if all_expected_windows_ready "$windows"; then
+      printf '%s\n' "$windows"
+      return 0
+    fi
+    sleep 1
+  done
+  niri_json windows
+}
+
+restore_layout() {
+  [[ -s "$STATE_FILE" ]] || return 0
+
+  local windows app_id ordinal workspace column width floating id
+  windows="$(wait_for_windows)" || return 1
+
+  while IFS=$'\t' read -r app_id ordinal workspace column width floating; do
+    id="$(window_id "$windows" "$app_id" "$ordinal")"
+    [[ -n "$id" ]] || continue
+
+    niri msg action move-window-to-workspace \
+      --window-id "$id" --focus false "$workspace" >/dev/null || true
+    if [[ "$floating" == "true" ]]; then
+      niri msg action move-window-to-floating --id "$id" >/dev/null || true
+    else
+      niri msg action move-window-to-tiling --id "$id" >/dev/null || true
+    fi
+    if [[ "$width" != "null" ]]; then
+      niri msg action set-window-width --id "$id" "${width%.*}" >/dev/null || true
+    fi
+  done < <(jq -r '.windows[] | [.app_id, .ordinal, .workspace, .column, .width, .floating] | @tsv' "$STATE_FILE")
+
+  while IFS=$'\t' read -r app_id ordinal column; do
+    id="$(window_id "$windows" "$app_id" "$ordinal")"
+    [[ -n "$id" ]] || continue
+    niri msg action focus-window --id "$id" >/dev/null || continue
+    niri msg action move-column-to-index "$column" >/dev/null || true
+  done < <(jq -r '.windows | sort_by(.workspace, .column)[] | [.app_id, .ordinal, .column] | @tsv' "$STATE_FILE")
+
+  app_id="$(jq -r '.focused.app_id // empty' "$STATE_FILE")"
+  ordinal="$(jq -r '.focused.ordinal // empty' "$STATE_FILE")"
+  if [[ -n "$app_id" && -n "$ordinal" ]]; then
+    id="$(window_id "$windows" "$app_id" "$ordinal")"
+    [[ -z "$id" ]] || niri msg action focus-window --id "$id" >/dev/null || true
+  fi
+}
+
+start_helium() {
+  helium-browser --profile-directory="Default" --restore-last-session >/dev/null 2>&1 &
+  sleep 2
+  helium-browser --profile-directory="Profile 6" --restore-last-session >/dev/null 2>&1 &
+  sleep 2
+  helium-browser --profile-directory="Profile 7" --restore-last-session >/dev/null 2>&1 &
+}
+
+watch_layout() {
+  exec 9> "$LOCK_FILE"
+  flock -n 9 || exit 0
+
+  restore_layout || true
+  trap 'save_layout || true' EXIT
+  trap 'exit 0' INT TERM
+  while sleep "$SAVE_INTERVAL_SECONDS"; do
+    save_layout || true
+  done
+}
+
+case "${1:-}" in
+  save) save_layout ;;
+  restore) restore_layout ;;
+  start-helium) start_helium ;;
+  watch) watch_layout ;;
+  *)
+    echo "Usage: niri-session-layout {save|restore|start-helium|watch}" >&2
+    exit 2
+    ;;
+esac

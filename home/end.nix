@@ -52,6 +52,7 @@ in
     ".local/bin/idle-lock-suspend".source = repoFile "apps/.local/bin/idle-lock-suspend";
     ".local/bin/location-info".source = repoFile "apps/.local/bin/location-info";
     ".local/bin/mullvad-tailscale-fix".source = repoFile "apps/.local/bin/mullvad-tailscale-fix";
+    ".local/bin/niri-session-layout".source = repoFile "apps/.local/bin/niri-session-layout";
     ".local/bin/quickshell-session".source = repoFile "apps/.local/bin/quickshell-session";
     ".local/bin/rfkill-airplane".source = repoFile "apps/.local/bin/rfkill-airplane";
     ".local/bin/rfkill-guard".source = repoFile "apps/.local/bin/rfkill-guard";

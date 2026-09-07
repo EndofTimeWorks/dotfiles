@@ -19,6 +19,21 @@ check() {
   fi
 }
 
+# Invoked indirectly by check below.
+# shellcheck disable=SC2329
+check_weather_unit_persistence() {
+  local state_dir result=0
+  state_dir="$(mktemp -d)"
+
+  [[ "$(XDG_STATE_HOME="$state_dir" apps/.local/bin/location-info weather-unit)" == "m" ]] || result=1
+  [[ "$(XDG_STATE_HOME="$state_dir" apps/.local/bin/location-info weather-unit u)" == "u" ]] || result=1
+  [[ "$(XDG_STATE_HOME="$state_dir" apps/.local/bin/location-info weather-unit)" == "u" ]] || result=1
+  [[ "$(stat -c %a "$state_dir/location/weather-unit")" == "600" ]] || result=1
+
+  rm -rf -- "$state_dir"
+  return "$result"
+}
+
 check "Git whitespace" git diff --check
 check "Niri configuration" niri validate -c apps/.config/niri/config.kdl
 
@@ -77,7 +92,7 @@ check "stale checkout paths" bash -c \
   '! git grep -nE "/home/end/(Github|projects)/dotfiles" -- ":(exclude)README.md"'
 
 required_commands=(
-  brightnessctl discord helium-browser hyprlock niri notify-send obsidian
+  brightnessctl discord flock helium-browser hyprlock niri notify-send obsidian
   playerctl playerctld qpwgraph quickshell rfkill signal-desktop swayidle
   thunderbird upower vicinae wallpaper-init wezterm zeditor zen-browser
 )
@@ -90,6 +105,11 @@ check "idle uses suspend-then-hibernate" grep -Fxq \
 
 check "brightness targets backlight devices" grep -Fq \
   'brightnessctl --class=backlight "$@"' apps/.local/bin/display-brightness
+
+check "weather unit persistence" check_weather_unit_persistence
+
+check "Niri session snapshot excludes private window metadata" bash -c \
+  '! rg -n '\''"(title|url|profile_name|email)"[[:space:]]*:'\'' apps/.local/bin/niri-session-layout'
 
 check "locker waits for session lock" grep -Fq \
   'onLockLocked called' apps/.local/bin/hyprlock-lock

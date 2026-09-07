@@ -5,6 +5,7 @@ umask 077
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/location"
 CACHE_FILE="$STATE_DIR/ip-location.json"
 GEOCLUE_CACHE_FILE="$STATE_DIR/geoclue-location.env"
+WEATHER_UNIT_FILE="$STATE_DIR/weather-unit"
 CACHE_TTL_SECONDS="${LOCATION_CACHE_TTL_SECONDS:-21600}"
 
 mkdir -p "$STATE_DIR"
@@ -127,7 +128,7 @@ weather_cmd() {
   ensure_cache || exit 1
 
   local unit lat lon
-  unit="${1:-m}"
+  unit="${1:-$(weather_unit_get)}"
   case "$unit" in
     m|u) ;;
     *)
@@ -141,6 +142,30 @@ weather_cmd() {
   [[ -n "$lat" && -n "$lon" ]] || exit 1
 
   curl -fsS --max-time 8 "https://wttr.in/${lat},${lon}?format=%c%t&${unit}"
+}
+
+weather_unit_get() {
+  local unit="m"
+  if [[ -s "$WEATHER_UNIT_FILE" ]]; then
+    IFS= read -r unit < "$WEATHER_UNIT_FILE" || unit="m"
+  fi
+  [[ "$unit" == "m" || "$unit" == "u" ]] || unit="m"
+  printf '%s\n' "$unit"
+}
+
+weather_unit_set() {
+  local unit="$1" tmp
+  [[ "$unit" == "m" || "$unit" == "u" ]] || {
+    echo "location-info: weather unit must be 'm' or 'u'" >&2
+    return 2
+  }
+  tmp="$(mktemp "$STATE_DIR/.weather-unit.XXXXXX")"
+  printf '%s\n' "$unit" > "$tmp"
+  if ! mv "$tmp" "$WEATHER_UNIT_FILE"; then
+    rm -f "$tmp"
+    return 1
+  fi
+  printf '%s\n' "$unit"
 }
 
 timezone_cmd() {
@@ -160,7 +185,14 @@ case "${1:-status}" in
     status_cmd
     ;;
   weather)
-    weather_cmd "${2:-m}"
+    weather_cmd "${2:-}"
+    ;;
+  weather-unit)
+    if (( $# >= 2 )); then
+      weather_unit_set "$2"
+    else
+      weather_unit_get
+    fi
     ;;
   timezone)
     timezone_cmd
@@ -174,7 +206,7 @@ case "${1:-status}" in
     status_cmd
     ;;
   *)
-    echo "Usage: location-info [status|weather [m|u]|timezone|set-timezone|refresh]" >&2
+    echo "Usage: location-info [status|weather [m|u]|weather-unit [m|u]|timezone|set-timezone|refresh]" >&2
     exit 2
     ;;
 esac

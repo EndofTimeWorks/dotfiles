@@ -53,30 +53,43 @@ Item {
             return Math.max(8, Math.floor((barWindow.width - width) / 2))
         }
         anchor.rect.y: barWindow ? barWindow.implicitHeight : 50
-        implicitWidth: 280
-        implicitHeight: 370
+        implicitWidth: 320
+        implicitHeight: content.implicitHeight + 24
         color: "transparent"
 
         property string tzLabel: ""
         property string detectedTz: ""
         property string detectedLocation: ""
         property string searchText: ""
-        property var zones: [
+        readonly property var fallbackZones: [
             "America/Phoenix", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Anchorage",
             "Pacific/Honolulu", "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Rome", "Europe/Moscow",
             "Asia/Dubai", "Asia/Kolkata", "Asia/Bangkok", "Asia/Shanghai", "Asia/Tokyo", "Asia/Seoul",
             "Australia/Sydney", "Pacific/Auckland"
         ]
+        property var zones: fallbackZones
         property var filteredZones: {
             var q = String(searchText || "").toLowerCase()
-            if (q === "") return zones
-            return zones.filter(z => z.toLowerCase().indexOf(q) !== -1)
+            if (q === "") return fallbackZones
+            return zones.filter(z => z.toLowerCase().indexOf(q) !== -1).slice(0, 50)
         }
 
         Process {
             id: tzProc
             command: ["bash", "-lc", "printf '%s (%s)\\n' \"$(date +%Z)\" \"$(timedatectl show -p Timezone --value 2>/dev/null || true)\""]
             stdout: StdioCollector { onStreamFinished: panel.tzLabel = this.text.trim() }
+        }
+
+        Process {
+            id: zonesProc
+            command: ["timedatectl", "list-timezones"]
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    var loadedZones = this.text.trim().split("\n").filter(zone => zone !== "")
+                    if (loadedZones.length > 0)
+                        panel.zones = loadedZones
+                }
+            }
         }
 
         Process {
@@ -127,18 +140,24 @@ Item {
         }
 
         Column {
-            anchors.fill: parent
-            anchors.margins: 12
+            id: content
+            anchors { left: parent.left; right: parent.right; top: parent.top; margins: 12 }
             spacing: 8
 
             Text { text: timeStr; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 18; font.bold: true }
             Text { text: Qt.formatDate(new Date(), "dddd, MMMM d"); color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 12 }
             Text { text: "System: " + panel.tzLabel; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 11 }
             Text {
-                text: panel.detectedTz !== ""
-                    ? "Detected: " + (panel.detectedLocation !== "" ? panel.detectedLocation + " • " : "") + panel.detectedTz
-                    : "Detected: unavailable"
+                text: "Location: " + (panel.detectedLocation || "unavailable")
                 color: Theme.accent
+                font.family: Theme.fontFamily
+                font.pixelSize: 11
+                elide: Text.ElideRight
+                width: parent.width
+            }
+            Text {
+                text: "Detected timezone: " + (panel.detectedTz || "unavailable")
+                color: Theme.textMuted
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 elide: Text.ElideRight
@@ -176,31 +195,6 @@ Item {
 
             Rectangle {
                 width: parent.width
-                height: 56
-                radius: 8
-                color: Qt.rgba(1, 1, 1, 0.04)
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 2
-                    Text {
-                        text: Qt.formatDate(new Date(), "MMMM yyyy")
-                        color: Theme.text
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 12
-                        font.bold: true
-                    }
-                    Text {
-                        text: Qt.formatDate(new Date(), "dddd, d")
-                        color: Theme.textMuted
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 11
-                    }
-                }
-            }
-
-            Rectangle {
-                width: parent.width
                 height: 28
                 radius: 6
                 color: Qt.rgba(1, 1, 1, 0.05)
@@ -214,6 +208,7 @@ Item {
                     font.pixelSize: 11
                     clip: true
                     selectByMouse: true
+                    verticalAlignment: TextInput.AlignVCenter
                     text: panel.searchText
                     onTextChanged: panel.searchText = text
                 }
@@ -230,7 +225,7 @@ Item {
 
             Flickable {
                 width: parent.width
-                height: 58
+                height: Math.min(130, tzCol.implicitHeight)
                 contentHeight: tzCol.implicitHeight
                 clip: true
 
@@ -275,6 +270,7 @@ Item {
         }
 
         Component.onCompleted: {
+            zonesProc.running = true
             tzProc.running = true
             locationProc.running = true
         }

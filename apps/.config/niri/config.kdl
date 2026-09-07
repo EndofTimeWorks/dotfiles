@@ -66,6 +66,7 @@ input {
 
 workspace "main"
 workspace "comms"
+workspace "research"
 
 // You can configure outputs by their name, which you can find
 // by running `niri msg outputs` while inside a niri instance.
@@ -273,9 +274,10 @@ spawn-at-startup "signal-desktop"
 spawn-at-startup "discord"
 spawn-at-startup "qpwgraph" "--minimized"
 spawn-at-startup "wezterm" "start" "--always-new-process"
-spawn-at-startup "helium-browser"
+spawn-at-startup "bash" "-lc" "~/.local/bin/niri-session-layout start-helium"
 spawn-at-startup "obsidian"
 spawn-at-startup "thunderbird"
+spawn-at-startup "bash" "-lc" "~/.local/bin/niri-session-layout watch"
 
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.
@@ -368,7 +370,6 @@ window-rule {
 
 // Workspace 1: productivity / personal
 window-rule {
-    match app-id="helium"
     match app-id=r#"^org\.wezfurlong\.wezterm$"#
     match app-id="obsidian"
     match app-id="thunderbird"

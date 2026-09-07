@@ -8,22 +8,28 @@ import "../Theme.js" as Theme
 Item {
     id: root
 
-    implicitWidth: visible ? (compact ? 32 : 190) : 0
+    implicitWidth: visible
+        ? (compact ? 32 : Math.min(190, mediaText.implicitWidth + 44))
+        : 0
     implicitHeight: 28
     visible: player !== null
 
     property var barWindow
     property bool compact: false
-    property int selectedIndex: -1
+    property string selectedPlayerName: ""
     property real displayedPosition: 0
-    readonly property var players: Mpris.players.values
+    readonly property var players: Mpris.players.values.filter(player =>
+        player.dbusName.indexOf(".playerctld") === -1
+    )
     readonly property var player: selectPlayer()
     readonly property string title: player ? (player.trackTitle || player.identity || "Media") : ""
     readonly property string artist: player ? (player.trackArtist || player.trackAlbum || "") : ""
 
     function selectPlayer() {
-        if (selectedIndex >= 0 && selectedIndex < players.length)
-            return players[selectedIndex]
+        for (var selected = 0; selected < players.length; selected++) {
+            if (players[selected].dbusName === selectedPlayerName)
+                return players[selected]
+        }
         for (var i = 0; i < players.length; i++) {
             if (players[i].isPlaying) return players[i]
         }
@@ -36,7 +42,8 @@ Item {
     function cyclePlayer(step) {
         if (players.length < 2) return
         var current = players.indexOf(player)
-        selectedIndex = (current + step + players.length) % players.length
+        var next = (current + step + players.length) % players.length
+        selectedPlayerName = players[next].dbusName
         syncPosition()
     }
 
@@ -52,7 +59,11 @@ Item {
         return mins + ":" + (secs < 10 ? "0" : "") + secs
     }
 
-    onPlayerChanged: syncPosition()
+    onPlayerChanged: {
+        if (selectedPlayerName !== "" && (!player || player.dbusName !== selectedPlayerName))
+            selectedPlayerName = ""
+        syncPosition()
+    }
 
     Timer {
         interval: 1000
@@ -97,6 +108,7 @@ Item {
             }
 
             Text {
+                id: mediaText
                 Layout.fillWidth: true
                 visible: !root.compact
                 text: root.artist !== "" ? root.artist + " · " + root.title : root.title
@@ -243,7 +255,7 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         text: (root.player ? root.player.identity : "Media")
-                            + (root.players.length > 1 ? " · " + root.players.length + " players" : "")
+                            + (root.players.length > 1 ? " · " + root.players.length + " sources" : "")
                         color: Theme.secondary
                         font.family: Theme.fontFamily
                         font.pixelSize: 10

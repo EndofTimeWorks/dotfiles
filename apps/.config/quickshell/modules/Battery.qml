@@ -11,6 +11,7 @@ Item {
 
     property var barWindow
     property int alertStage: 0
+    property bool powerSampleTimedOut: false
     readonly property var battery: findBattery()
     readonly property int pct: battery && battery.ready ? Math.round(battery.percentage * 100) : 0
     readonly property bool charging: battery && (
@@ -31,21 +32,33 @@ Item {
     }
 
     function alertText() {
-        var left = displayTimeLeft()
-        if (left !== "")
-            return pct + "% remaining • " + left
+        var duration = durationText()
+        if (duration !== "")
+            return pct + "% remaining · " + duration
         return pct + "% remaining"
     }
 
-    function displayTimeLeft() {
+    function durationText() {
         if (secondsLeft <= 0 || (!charging && pct <= 10)) return ""
         var totalMinutes = Math.round(secondsLeft / 60)
         if (totalMinutes >= 60) {
             var hours = Math.floor(totalMinutes / 60)
             var minutes = totalMinutes % 60
-            return hours + "h" + (minutes > 0 ? " " + minutes + "m" : "") + " left"
+            return hours + "h" + (minutes > 0 ? " " + minutes + "m" : "")
         }
-        return totalMinutes + " min left"
+        return totalMinutes + " min"
+    }
+
+    function statusText() {
+        if (!battery || !battery.ready) return "Battery unavailable"
+        if (battery.state === UPowerDeviceState.FullyCharged) return "Fully charged"
+        if (battery.state === UPowerDeviceState.PendingCharge) return "Plugged in, waiting to charge"
+        if (battery.state === UPowerDeviceState.Charging)
+            return durationText() !== "" ? durationText() + " until full" : "Charging"
+        if (battery.state === UPowerDeviceState.Discharging)
+            return durationText() !== "" ? durationText() + " remaining" : "Discharging"
+        if (battery.state === UPowerDeviceState.PendingDischarge) return "On battery, waiting to discharge"
+        return charging ? "Plugged in" : "On battery"
     }
 
     function maybeAlert() {
@@ -92,6 +105,14 @@ Item {
 
     onPctChanged: maybeAlert()
     onChargingChanged: maybeAlert()
+
+    Timer {
+        id: powerSampleTimer
+        interval: 5000
+        running: popup.visible && battery && battery.ready
+            && battery.changeRate <= 0 && !powerSampleTimedOut
+        onTriggered: powerSampleTimedOut = true
+    }
 
     Process {
         id: lowAlert
@@ -140,11 +161,15 @@ Item {
         id: popup
         visible: false
         grabFocus: true
+        onVisibleChanged: {
+            if (visible)
+                powerSampleTimedOut = false
+        }
         anchor.window: barWindow
         anchor.rect.x: {
             if (!barWindow) return 0
             var gx = parent.mapToGlobal(parent.width / 2, 0).x
-            return Math.max(8, Math.min(gx - 8 - 90, barWindow.width - 180 - 8))
+            return Math.max(8, Math.min(gx - popup.width / 2, barWindow.width - popup.width - 8))
         }
         anchor.rect.y: barWindow ? barWindow.implicitHeight : 50
         implicitWidth: 230
@@ -164,9 +189,7 @@ Item {
             spacing: 6
             Text { text: pct + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 16; font.bold: true }
             Text {
-                text: charging
-                    ? (displayTimeLeft() || "Charging")
-                    : (displayTimeLeft() || "Discharging")
+                text: statusText()
                 color: Theme.textMuted
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
@@ -182,7 +205,7 @@ Item {
             Text {
                 text: battery && battery.changeRate > 0
                     ? (charging ? "Charging at " : "Using ") + battery.changeRate.toFixed(1) + " W"
-                    : "Power rate unavailable"
+                    : (powerSampleTimedOut ? "Power rate unavailable" : "Measuring power usage...")
                 color: Theme.textMuted
                 font.family: Theme.fontFamily
                 font.pixelSize: 11

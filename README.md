@@ -112,9 +112,26 @@ Current startup behavior:
 
 - starts Quickshell through `~/.local/bin/quickshell-session`
 - uses the package-provided `vicinae.service` for the launcher server
-- starts Signal, Discord, qpwgraph, WezTerm, Helium, Obsidian, and Thunderbird
+- starts Signal, Discord, qpwgraph, WezTerm, the active Helium profiles,
+  Obsidian, and Thunderbird
 - routes startup apps to the intended workspaces
 - maximizes startup app windows
+- restores the last saved workspace, column order, width, floating state, and
+  focus for managed startup windows
+
+Niri session layout state is stored privately in:
+
+```text
+~/.local/state/niri/session-layout.json
+```
+
+The snapshot contains app IDs, instance order, named workspaces, and layout
+geometry. It deliberately excludes window titles, URLs, and profile names.
+Helium starts the active `Default`, `Profile 6`, and `Profile 7` directories in
+a stable order so their existing browser sessions can be matched to `main` and
+`research`. Since Helium exposes the same Wayland app ID for every profile,
+matching multiple Helium windows remains best-effort after an abnormal browser
+shutdown.
 
 Manual lock is still available:
 

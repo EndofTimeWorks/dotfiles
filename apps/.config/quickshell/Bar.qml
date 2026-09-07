@@ -90,7 +90,7 @@ Scope {
                                     barWindow: barWin
                                     compact: barWin.narrow
                                 }
-                                Weather { enabled: !barWin.compact }
+                                Weather { enabled: !barWin.compact; barWindow: barWin }
                                 Mullvad { barWindow: barWin; compact: barWin.narrow }
                                 Tailscale { barWindow: barWin; compact: barWin.narrow }
                                 Network { compact: barWin.narrow }
